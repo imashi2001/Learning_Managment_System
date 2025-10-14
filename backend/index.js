@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 
 // Load environment variables first
 dotenv.config();
@@ -19,10 +20,11 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/courses", courseRoutes);
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("LMS Backend is running 🚀");
+  res.send("LMS Backend is running ");
 });
 
 // Start server
