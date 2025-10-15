@@ -5,7 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
-
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 
 // Load environment variables first
@@ -25,7 +25,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/courses", courseRoutes);
-
+app.use("/api/payments", paymentRoutes);
 
 
 // Test route
