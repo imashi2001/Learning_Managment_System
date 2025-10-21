@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Enrolment from "./pages/Enrolment";
 import EnrolmentList from "./pages/EnrolmentList";
+import PaymentForm from "./pages/PaymentForm";
+import PaymentList from "./pages/PaymentList";
 
 function App() {
   return (
@@ -52,6 +54,10 @@ function App() {
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/payment" element={<PaymentForm />} />
+      <Route path="/payments" element={<PaymentList />} />
+
+
     </Routes>
   );
 }
