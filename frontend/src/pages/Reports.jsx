@@ -5,73 +5,59 @@ export default function Reports() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleDownload = async (type) => {
+  const downloadReport = async (type) => {
     setMessage("");
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+
       const response = await axiosClient.get(`/reports/${type}`, {
         headers: { Authorization: `Bearer ${token}` },
-        responseType: "blob", // Important for file downloads
+        responseType: "blob", // important for binary files
       });
 
-      // Create a temporary link to trigger download
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        type === "pdf" ? "report.pdf" : "report.csv"
-      );
-      document.body.appendChild(link);
-      link.click();
+      const blob = new Blob([response.data], {
+        type: type === "pdf" ? "application/pdf" : "text/csv",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = type === "pdf" ? "report.pdf" : "report.csv";
+      a.click();
+      window.URL.revokeObjectURL(url);
 
-      setMessage(`✅ ${type.toUpperCase()} report downloaded successfully.`);
+      setMessage(`✅ ${type.toUpperCase()} report downloaded successfully`);
     } catch (error) {
-      console.error(error);
-      setMessage("❌ Failed to download report.");
+      console.log(error);
+      setMessage("❌ Failed to download report");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white shadow-md p-6 rounded-lg">
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">
-        Admin Reports
-      </h1>
+    <div className="max-w-3xl mx-auto mt-10 bg-white p-6 shadow rounded">
+      <h1 className="text-2xl font-bold text-center mb-4">Reports</h1>
 
-      <p className="text-gray-600 text-center mb-6">
-        Generate and download reports for enrolments and payments.
-      </p>
-
-      <div className="flex justify-center gap-6 mb-6">
+      <div className="flex justify-center gap-6 mb-4">
         <button
-          onClick={() => handleDownload("pdf")}
+          onClick={() => downloadReport("pdf")}
           disabled={loading}
-          className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+          className="bg-blue-600 px-4 py-2 text-white rounded hover:bg-blue-700"
         >
-          {loading ? "Generating..." : "Download PDF"}
+          {loading ? "Downloading..." : "Download PDF"}
         </button>
 
         <button
-          onClick={() => handleDownload("csv")}
+          onClick={() => downloadReport("csv")}
           disabled={loading}
-          className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition"
+          className="bg-green-600 px-4 py-2 text-white rounded hover:bg-green-700"
         >
-          {loading ? "Generating..." : "Download CSV"}
+          {loading ? "Downloading..." : "Download CSV"}
         </button>
       </div>
 
-      {message && (
-        <p
-          className={`text-center font-medium ${
-            message.includes("✅") ? "text-green-700" : "text-red-600"
-          }`}
-        >
-          {message}
-        </p>
-      )}
+      {message && <p className="text-center mt-2">{message}</p>}
     </div>
   );
 }
