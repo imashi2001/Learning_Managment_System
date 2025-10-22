@@ -1,14 +1,13 @@
 import PDFDocument from "pdfkit";
 import { Parser } from "json2csv";
-import fs from "fs";
-import path from "path";
 import Enrollment from "../models/Enrollment.js";
 import Payment from "../models/Payment.js";
 import Course from "../models/Course.js";
 
-// 🧾 Generate PDF report
+// 📄 Generate PDF Report
 export const generatePDFReport = async (req, res) => {
   try {
+    // Only admin can download
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -20,49 +19,42 @@ export const generatePDFReport = async (req, res) => {
     ]);
 
     const doc = new PDFDocument();
-    const filePath = path.join("reports", `LMS_Report_${Date.now()}.pdf`);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=LMS_Report.pdf");
+    doc.pipe(res);
 
-    if (!fs.existsSync("reports")) {
-      fs.mkdirSync("reports");
-    }
-
-    doc.pipe(fs.createWriteStream(filePath));
-
-    doc.fontSize(20).text("📘 Learning Management System Report", { align: "center" });
+    doc.fontSize(20).text("Learning Management System Report", { align: "center" });
     doc.moveDown();
 
-    // Section 1: Courses
+    // Courses Section
     doc.fontSize(14).text("Courses Overview:", { underline: true });
-    courses.forEach((course, i) => {
-      doc.text(`${i + 1}. ${course.title} (${course.category}) - Instructor: ${course.instructor?.name}`);
+    courses.forEach((c, i) => {
+      doc.text(`${i + 1}. ${c.title} (${c.category}) - Trainer: ${c.instructor?.name || "N/A"}`);
     });
     doc.moveDown();
 
-    // Section 2: Enrollments
+    // Enrollments Section
     doc.fontSize(14).text("Enrollments:", { underline: true });
-    enrollments.forEach((en, i) => {
-      doc.text(`${i + 1}. ${en.student.name} → ${en.course.title} (${en.status})`);
+    enrollments.forEach((e, i) => {
+      doc.text(`${i + 1}. ${e.student?.name} → ${e.course?.title} (${e.status})`);
     });
     doc.moveDown();
 
-    // Section 3: Payments
+    // Payments Section
     doc.fontSize(14).text("Payments:", { underline: true });
     payments.forEach((p, i) => {
-      doc.text(`${i + 1}. ${p.student.name} → ${p.course.title} | ${p.amount} LKR | ${p.status}`);
+      doc.text(
+        `${i + 1}. ${p.student?.name} → ${p.course?.title} | Rs.${p.amount} | ${p.status}`
+      );
     });
 
     doc.end();
-
-    res.json({
-      message: "PDF report generated successfully",
-      filePath,
-    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error generating PDF", error: error.message });
   }
 };
 
-// 📊 Generate CSV report
+// 📊 Generate CSV Report
 export const generateCSVReport = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -80,24 +72,17 @@ export const generateCSVReport = async (req, res) => {
       Amount: p.amount,
       PaymentMethod: p.paymentMethod,
       Status: p.status,
-      Date: p.paidAt.toISOString(),
+      Date: p.paidAt?.toISOString(),
     }));
 
     const parser = new Parser();
     const csv = parser.parse(csvData);
 
-    const filePath = path.join("reports", `Payments_Report_${Date.now()}.csv`);
-    if (!fs.existsSync("reports")) {
-      fs.mkdirSync("reports");
-    }
+    res.header("Content-Type", "text/csv");
+    res.attachment(`Payments_Report.csv`);
+    res.send(csv);
 
-    fs.writeFileSync(filePath, csv);
-
-    res.json({
-      message: "CSV report generated successfully",
-      filePath,
-    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error generating CSV", error: error.message });
   }
 };

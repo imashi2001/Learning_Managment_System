@@ -4,7 +4,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Admin-only routes
+// Only Admins can access these routes
 router.get("/pdf", authMiddleware, generatePDFReport);
 router.get("/csv", authMiddleware, generateCSVReport);
 

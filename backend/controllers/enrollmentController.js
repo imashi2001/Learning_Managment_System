@@ -32,7 +32,7 @@ export const enrollInCourse = async (req, res) => {
   }
 };
 
-// 📚 Get enrollments for a student
+// Get enrollments for a student
 export const getMyEnrollments = async (req, res) => {
   try {
     const enrollments = await Enrollment.find({ student: req.user.id })
@@ -43,7 +43,7 @@ export const getMyEnrollments = async (req, res) => {
   }
 };
 
-// 🧑‍🏫 Admin or instructor view all enrollments
+// Admin or instructor view all enrollments
 export const getAllEnrollments = async (req, res) => {
   try {
     if (req.user.role !== "admin" && req.user.role !== "instructor") {
