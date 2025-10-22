@@ -1,18 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+
 
 export default function Navbar() {
   const navigate = useNavigate();
-
-  // Get user role from JWT (if logged in)
   const token = localStorage.getItem("token");
   let role = null;
 
   if (token) {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      role = payload.role;
-    } catch (err) {
-      console.error("Invalid token:", err);
+      const decoded = jwtDecode(token);
+      role = decoded.role;
+    } catch (error) {
+      console.error("Invalid token",error);
     }
   }
 
@@ -22,21 +22,27 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-gray-900 text-white p-4 flex justify-between items-center">
-      <h1 className="text-xl font-bold">Learning Management System</h1>
+    <nav className="bg-gray-900 text-white p-4 flex flex-wrap justify-between items-center shadow-md">
+      <h1 className="text-xl font-bold">LMS Dashboard</h1>
 
-      <div className="space-x-4 flex items-center">
-        <Link to="/" className="hover:text-gray-300">Home</Link>
+      <div className="flex flex-wrap gap-4 items-center">
+        <Link to="/" className="hover:text-gray-300">
+          Home
+        </Link>
 
-        {/* Common Links */}
-        <Link to="/enrolment" className="hover:text-gray-300">Enrolment</Link>
-
-        {/* Student-specific link */}
+        {/* Links for STUDENTS */}
         {role === "student" && (
-          <Link to="/payment" className="hover:text-gray-300">Payment</Link>
+          <>
+            <Link to="/enrolment" className="hover:text-gray-300">
+              Enrolment
+            </Link>
+            <Link to="/payment" className="hover:text-gray-300">
+              Payment
+            </Link>
+          </>
         )}
 
-        {/* Admin-specific links */}
+        {/* Links for ADMINS */}
         {role === "admin" && (
           <>
             <Link to="/enrolments" className="hover:text-gray-300">
@@ -51,15 +57,12 @@ export default function Navbar() {
           </>
         )}
 
-        {/* Logout Button */}
-        {token && (
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        )}
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
       </div>
     </nav>
   );
