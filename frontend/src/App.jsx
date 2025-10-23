@@ -3,33 +3,36 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
 import Enrolment from "./pages/Enrolment";
 import EnrolmentList from "./pages/EnrolmentList";
 import PaymentForm from "./pages/PaymentForm";
 import PaymentList from "./pages/PaymentList";
-import Reports from "./pages/Reports"; // if you already have reports page
+import Reports from "./pages/Reports";
 import LecturerDashboard from "./pages/LecturerDashboard";
 import AssignCourses from "./pages/AssignCourses";
 import MyCourses from "./pages/MyCourses";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
     <Routes>
-      {/* 🏠 Home (Protected) */}
+      {/* ✅ Default route: detect role in Navbar and redirect */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
             <>
               <Navbar />
-              <Home />
+              <div className="text-center mt-10 text-gray-700">
+                <h2>Welcome to Learning Management System</h2>
+                <p>Select your role’s dashboard from the navigation bar.</p>
+              </div>
             </>
           </ProtectedRoute>
         }
       />
 
-      {/* 🧾 Enrolment (Student View) */}
+      {/* 👩‍🎓 Student Routes */}
       <Route
         path="/enrolment"
         element={
@@ -41,21 +44,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
-      {/* 📋 Enrolment List (Admin View) */}
-      <Route
-        path="/enrolments"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <EnrolmentList />
-            </>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* 💳 Payment Form (Student View) */}
       <Route
         path="/payment"
         element={
@@ -67,57 +55,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
-      {/* 🧾 Payment List (Admin View) */}
-      <Route
-        path="/payments"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <PaymentList />
-            </>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* 📊 Reports (Admin View — optional) */}
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <Reports />
-            </>
-          </ProtectedRoute>
-        }
-      />
-      {/* 🎓 Lecturer Dashboard */}
-      <Route
-        path="/lecturer-dashboard"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <LecturerDashboard />
-            </>
-          </ProtectedRoute>
-        }
-      />
-      {/* 🧑‍🏫 Assign Courses to Lecturer (Admin View) */}
-      <Route
-        path="/assign-courses"
-        element={
-          <ProtectedRoute>
-            <>
-              <Navbar />
-              <AssignCourses />
-            </>
-          </ProtectedRoute>
-        }
-      /> 
-      {/* 📚 My Courses (Lecturer View) */}
       <Route
         path="/my-courses"
         element={
@@ -129,7 +66,77 @@ function App() {
           </ProtectedRoute>
         }
       />
-      
+
+      {/* 👨‍🏫 Lecturer Routes */}
+      <Route
+        path="/lecturer-dashboard"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <LecturerDashboard />
+            </>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 🧑‍💼 Admin Routes */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <AdminDashboard />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/assign-courses"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <AssignCourses />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/enrolments"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <EnrolmentList />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <PaymentList />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <Reports />
+            </>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 🔐 Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

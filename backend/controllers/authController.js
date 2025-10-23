@@ -64,3 +64,16 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// ✅ Get all users (Admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const users = await User.find({}, "name email role");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch users", error: error.message });
+  }
+};

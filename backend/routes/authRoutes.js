@@ -3,35 +3,22 @@ import {
   registerUser,
   loginUser,
   getProfile,
+  getAllUsers, 
 } from "../controllers/authController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-import User from "../models/User.js"; // ✅ import User model to fetch users
 
 const router = express.Router();
 
-// 🔹 Register
+// 🔹 Register new user
 router.post("/register", registerUser);
 
-// 🔹 Login
+// 🔹 Login existing user
 router.post("/login", loginUser);
 
-// 🔹 Get current user's profile
+// 🔹 Get logged-in user profile
 router.get("/me", authMiddleware, getProfile);
 
-// 🔹 Get all users (Admin only)
-router.get("/users", authMiddleware, async (req, res) => {
-  try {
-    // Check if the logged-in user is admin
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    // Fetch all users except passwords
-    const users = await User.find().select("-password");
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching users", error: error.message });
-  }
-});
+// 🔹 Admin — Get all users
+router.get("/users", authMiddleware, getAllUsers); // ✅ cleaner separation
 
 export default router;

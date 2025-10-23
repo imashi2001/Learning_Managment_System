@@ -1,131 +1,208 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../api/axiosClient";
+import { toast } from "react-toastify";
 
 export default function PaymentList() {
-  const [payments, setPayments] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [filtered, setFiltered] = useState([]);
-  const [search, setSearch] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [animate, setAnimate] = useState(false);
+
+  const [stats, setStats] = useState({
+    totalPaid: 0,
+    totalPending: 0,
+    totalStudents: 0,
+  });
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axiosClient.get("/payments", {
+        const res = await axiosClient.get("/enrollments", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setPayments(res.data);
-        setFiltered(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to load payments");
+
+        const data = res.data;
+        setEnrollments(data);
+        setFiltered(data);
+        calculateStats(data);
+      } catch (error) {
+        toast.error("Failed to load payments",error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchPayments();
   }, []);
 
-  useEffect(() => {
-    let data = [...payments];
-    if (search.trim() !== "") {
-      data = data.filter(
-        (p) =>
-          p.studentName?.toLowerCase().includes(search.toLowerCase()) ||
-          p.studentEmail?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    if (courseFilter !== "") data = data.filter((p) => p.course === courseFilter);
-    if (statusFilter !== "") data = data.filter((p) => p.paymentStatus === statusFilter);
-    setFiltered(data);
-  }, [search, courseFilter, statusFilter, payments]);
+  const calculateStats = (data) => {
+    const totalPaid = data
+      .filter((e) => e.paymentStatus === "Paid")
+      .reduce((sum, e) => sum + (e.course?.price || 0), 0);
 
-  if (loading)
-    return <p className="text-center mt-10 text-gray-600">Loading...</p>;
-  if (error)
-    return <p className="text-center mt-10 text-red-600">{error}</p>;
+    const totalPending = data
+      .filter((e) => e.paymentStatus === "Pending" || !e.paymentStatus)
+      .reduce((sum, e) => sum + (e.course?.price || 0), 0);
+
+    const uniqueStudents = new Set(data.map((e) => e.student?._id)).size;
+
+    setStats({
+      totalPaid,
+      totalPending,
+      totalStudents: uniqueStudents,
+    });
+  };
+
+  const handleFilterChange = (value) => {
+    setFilter(value);
+    if (value === "all") {
+      setFiltered(enrollments);
+    } else {
+      const filteredData = enrollments.filter(
+        (e) => e.paymentStatus === value
+      );
+      setFiltered(filteredData);
+    }
+  };
+
+  const markAsPaid = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axiosClient.put(
+        `/enrollments/${id}/pay`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success("Payment marked as Paid!");
+      const updated = enrollments.map((e) =>
+        e._id === id ? { ...e, paymentStatus: "Paid" } : e
+      );
+      setEnrollments(updated);
+      calculateStats(updated);
+
+      // ✨ Animate Total Revenue update
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 800);
+
+      const filteredUpdated = filtered.map((e) =>
+        e._id === id ? { ...e, paymentStatus: "Paid" } : e
+      );
+      setFiltered(filteredUpdated);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update payment");
+    }
+  };
+
+  if (loading) return <p className="text-center mt-10">Loading payments...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 bg-white shadow-md p-6 rounded-lg">
-      <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">
-        Payment Records
-      </h1>
+    <div className="max-w-6xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-center">💰 Student Payments</h1>
 
-      {/* 🔍 Filters */}
-      <div className="flex flex-wrap gap-3 justify-center mb-6">
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-60"
-        />
-        <select
-          value={courseFilter}
-          onChange={(e) => setCourseFilter(e.target.value)}
-          className="border p-2 rounded"
+      {/* Summary Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 transition-all duration-500">
+        <div
+          className={`p-4 rounded-lg text-center shadow-sm border ${
+            animate
+              ? "bg-green-300 text-green-900 scale-105"
+              : "bg-green-100 text-green-800"
+          } transition-all duration-500`}
         >
-          <option value="">All Courses</option>
-          <option value="IT Fundamentals">IT Fundamentals</option>
-          <option value="Software Engineering">Software Engineering</option>
-          <option value="Database Management">Database Management</option>
-        </select>
+          <h3 className="font-bold text-lg">Total Revenue</h3>
+          <p className="text-2xl font-semibold">
+            Rs.{stats.totalPaid.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg text-center shadow-sm border">
+          <h3 className="font-bold text-lg">Pending Amount</h3>
+          <p className="text-2xl font-semibold">
+            Rs.{stats.totalPending.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-blue-100 text-blue-800 p-4 rounded-lg text-center shadow-sm border">
+          <h3 className="font-bold text-lg">Total Students</h3>
+          <p className="text-2xl font-semibold">{stats.totalStudents}</p>
+        </div>
+      </div>
+
+      {/* Filter Section */}
+      <div className="flex justify-end mb-4">
         <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded"
+          value={filter}
+          onChange={(e) => handleFilterChange(e.target.value)}
+          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
         >
-          <option value="">All Status</option>
+          <option value="all">All</option>
           <option value="Paid">Paid</option>
           <option value="Pending">Pending</option>
         </select>
       </div>
 
-      {/* 📋 Table */}
-      <table className="w-full border-collapse border border-gray-300 text-left">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">Student Name</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Course</th>
-            <th className="border p-2">Amount (LKR)</th>
-            <th className="border p-2">Method</th>
-            <th className="border p-2">Status</th>
-            <th className="border p-2">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.length > 0 ? (
-            filtered.map((p, i) => (
-              <tr key={i} className="hover:bg-gray-100">
-                <td className="border p-2">{p.studentName}</td>
-                <td className="border p-2">{p.studentEmail}</td>
-                <td className="border p-2">{p.course}</td>
-                <td className="border p-2">{p.amount}</td>
-                <td className="border p-2">{p.paymentMethod}</td>
-                <td
-                  className={`border p-2 font-semibold ${
-                    p.paymentStatus === "Paid" ? "text-green-600" : "text-yellow-600"
-                  }`}
-                >
-                  {p.paymentStatus}
-                </td>
-                <td className="border p-2">
-                  {new Date(p.createdAt).toLocaleDateString()}
+      {/* Payment Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-300 text-left">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border p-2">Student</th>
+              <th className="border p-2">Email</th>
+              <th className="border p-2">Course</th>
+              <th className="border p-2">Batch</th>
+              <th className="border p-2">Phone</th>
+              <th className="border p-2">Amount</th>
+              <th className="border p-2">Status</th>
+              <th className="border p-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length > 0 ? (
+              filtered.map((enroll) => (
+                <tr key={enroll._id} className="hover:bg-gray-50">
+                  <td className="border p-2">{enroll.student?.name}</td>
+                  <td className="border p-2">{enroll.student?.email}</td>
+                  <td className="border p-2">{enroll.course?.title}</td>
+                  <td className="border p-2">{enroll.batch || "-"}</td>
+                  <td className="border p-2">{enroll.phone || "-"}</td>
+                  <td className="border p-2">
+                    Rs.{enroll.course?.price?.toLocaleString() || "0"}
+                  </td>
+                  <td
+                    className={`border p-2 font-semibold ${
+                      enroll.paymentStatus === "Paid"
+                        ? "text-green-600"
+                        : "text-orange-500"
+                    }`}
+                  >
+                    {enroll.paymentStatus || "Pending"}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {enroll.paymentStatus === "Paid" ? (
+                      <span className="text-gray-400">✔ Paid</span>
+                    ) : (
+                      <button
+                        onClick={() => markAsPaid(enroll._id)}
+                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition"
+                      >
+                        Mark Paid
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center p-3 text-gray-500 italic">
+                  No records found.
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" className="text-center p-3 text-gray-500 italic">
-                No payment records found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import Enrollment from "../models/Enrollment.js";
 import User from "../models/User.js";
 import Course from "../models/Course.js";
 
@@ -41,5 +42,29 @@ export const assignCoursesToLecturer = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Error assigning courses", error: error.message });
+  }
+};
+export const getOverviewStats = async (req, res) => {
+  try {
+    // count totals
+    const totalStudents = await User.countDocuments({ role: "student" });
+    const totalLecturers = await User.countDocuments({ role: "lecturer" });
+    const totalCourses = await Course.countDocuments();
+
+    // sum revenue for paid enrollments
+    const paidEnrollments = await Enrollment.find({ paymentStatus: "Paid" });
+    const totalRevenue = paidEnrollments.reduce(
+      (sum, e) => sum + (e.course?.price || 0),
+      0
+    );
+
+    res.json({
+      totalStudents,
+      totalLecturers,
+      totalCourses,
+      totalRevenue,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

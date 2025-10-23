@@ -3,6 +3,7 @@ import {
   enrollInCourse,
   getMyEnrollments,
   getAllEnrollments,
+  markAsPaid,
 } from "../controllers/enrollmentController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { getMyCourses } from "../controllers/enrollmentController.js";
@@ -13,5 +14,6 @@ router.post("/", authMiddleware, enrollInCourse);
 router.get("/my-enrollments", authMiddleware, getMyEnrollments);
 router.get("/", authMiddleware, getAllEnrollments);
 router.get("/my-courses", authMiddleware, getMyCourses);
+router.put("/:id/pay", authMiddleware, markAsPaid);
 
 export default router;
