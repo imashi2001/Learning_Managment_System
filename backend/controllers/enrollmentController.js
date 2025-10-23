@@ -58,4 +58,24 @@ export const getAllEnrollments = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+
+};
+
+
+// ✅ Fetch student's enrolled courses with lecturer and modules
+export const getMyCourses = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const enrollments = await Enrollment.find({ student: studentId }).populate({
+      path: "course",
+      populate: { path: "instructor", select: "name email" },
+    });
+
+    const courses = enrollments.map((en) => en.course);
+
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load courses", error: error.message });
+  }
 };

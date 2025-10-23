@@ -1,4 +1,71 @@
+import { useState, useEffect } from "react";
+import axiosClient from "../api/axiosClient";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+
 export default function Enrolment() {
+  const [courses, setCourses] = useState([]);
+  const [formData, setFormData] = useState({
+    courseId: "",
+    batch: "",
+    phone: "",
+  });
+  const navigate = useNavigate();
+
+  // 🧠 Auto-fetch student info silently (name/email from token, no input fields)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      jwtDecode(token); // We don’t need to store student info here
+    } catch (err) {
+      console.error("Invalid token:", err);
+    }
+  }, []);
+
+  // 📚 Fetch available courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await axiosClient.get("/courses");
+        setCourses(res.data);
+      } catch (error) {
+        toast.error("Failed to load courses",error);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  // 📋 Handle input changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 🚀 Submit enrollment
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      await axiosClient.post(
+        "/enrollments",
+        {
+          courseId: formData.courseId,
+          batch: formData.batch,
+          phone: formData.phone,
+          paymentStatus: "Pending", // ✅ Set automatically
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success("Enrolment successful! Please proceed to payment.");
+      navigate("/payment"); // ✅ Redirect student to payment page
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Enrolment failed");
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg border border-gray-200">
@@ -6,41 +73,37 @@ export default function Enrolment() {
           Student Enrolment
         </h1>
 
-        <form className="space-y-4">
-          {/* Student Name */}
-          <div>
-            <label className="block text-gray-700 mb-1">Student Name</label>
-            <input
-              type="text"
-              placeholder="Enter student name"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          {/* Student Email */}
-          <div>
-            <label className="block text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              placeholder="Enter email"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {/* Course Selection */}
           <div>
             <label className="block text-gray-700 mb-1">Course</label>
-            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option>Select Course</option>
-              <option>IT Fundamentals</option>
-              <option>Web Development</option>
+            <select
+              name="courseId"
+              value={formData.courseId}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.title} – Rs.{course.price || 0}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Batch */}
           <div>
             <label className="block text-gray-700 mb-1">Batch</label>
-            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <select
+              name="batch"
+              value={formData.batch}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            >
+              <option value="">-- Select Batch --</option>
               <option>Y1S1</option>
               <option>Y1S2</option>
               <option>Y2S1</option>
@@ -52,23 +115,18 @@ export default function Enrolment() {
             </select>
           </div>
 
-          {/* Phone Number */}
+          {/* Phone */}
           <div>
             <label className="block text-gray-700 mb-1">Phone Number</label>
             <input
               type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
               placeholder="Enter phone number"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
             />
-          </div>
-
-          {/* Payment Status */}
-          <div>
-            <label className="block text-gray-700 mb-1">Payment Status</label>
-            <select className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option>Pending</option>
-              <option>Paid</option>
-            </select>
           </div>
 
           {/* Submit */}

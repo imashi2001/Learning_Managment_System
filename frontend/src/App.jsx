@@ -11,6 +11,7 @@ import PaymentList from "./pages/PaymentList";
 import Reports from "./pages/Reports"; // if you already have reports page
 import LecturerDashboard from "./pages/LecturerDashboard";
 import AssignCourses from "./pages/AssignCourses";
+import MyCourses from "./pages/MyCourses";
 
 function App() {
   return (
@@ -115,7 +116,20 @@ function App() {
             </>
           </ProtectedRoute>
         }
-      />  
+      /> 
+      {/* 📚 My Courses (Lecturer View) */}
+      <Route
+        path="/my-courses"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <MyCourses />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      
       {/* 🔐 Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

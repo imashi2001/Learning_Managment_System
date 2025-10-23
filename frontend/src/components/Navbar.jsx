@@ -22,7 +22,7 @@ export default function Navbar() {
 
   return (
     <nav className="bg-gray-900 text-white p-4 flex flex-wrap justify-between items-center shadow-md">
-      <h1 className="text-xl font-bold">LMS Dashboard</h1>
+      <h1 className="text-xl font-bold">Learning Managment System</h1>
 
       <div className="flex flex-wrap gap-4 items-center">
         <Link to="/" className="hover:text-gray-300">
@@ -37,6 +37,9 @@ export default function Navbar() {
             </Link>
             <Link to="/payment" className="hover:text-gray-300">
               Payment
+            </Link>
+            <Link to="/my-courses" className="hover:text-gray-300">
+              My Courses
             </Link>
           </>
         )}
