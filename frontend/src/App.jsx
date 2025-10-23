@@ -9,6 +9,8 @@ import EnrolmentList from "./pages/EnrolmentList";
 import PaymentForm from "./pages/PaymentForm";
 import PaymentList from "./pages/PaymentList";
 import Reports from "./pages/Reports"; // if you already have reports page
+import LecturerDashboard from "./pages/LecturerDashboard";
+import AssignCourses from "./pages/AssignCourses";
 
 function App() {
   return (
@@ -90,7 +92,30 @@ function App() {
           </ProtectedRoute>
         }
       />
-
+      {/* 🎓 Lecturer Dashboard */}
+      <Route
+        path="/lecturer-dashboard"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <LecturerDashboard />
+            </>
+          </ProtectedRoute>
+        }
+      />
+      {/* 🧑‍🏫 Assign Courses to Lecturer (Admin View) */}
+      <Route
+        path="/assign-courses"
+        element={
+          <ProtectedRoute>
+            <>
+              <Navbar />
+              <AssignCourses />
+            </>
+          </ProtectedRoute>
+        }
+      />  
       {/* 🔐 Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

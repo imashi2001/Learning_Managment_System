@@ -7,6 +7,8 @@ import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import lecturerRoutes from "./routes/lecturerRoutes.js";
 
 // Load environment variables first
 dotenv.config();
@@ -27,6 +29,9 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/lecturer", lecturerRoutes);
+
 
 // Test route
 app.get("/", (req, res) => {

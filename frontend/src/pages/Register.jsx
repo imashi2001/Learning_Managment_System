@@ -61,13 +61,14 @@ export default function Register() {
             required
           />
 
-          {/* Role dropdown (optional) */}
+          {/* Role dropdown (Student, Lecturer, Admin) */}
           <select
             className="w-full p-2 border rounded-lg"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
             <option value="student">Student</option>
+            <option value="lecturer">Lecturer</option>
             <option value="admin">Admin</option>
           </select>
 

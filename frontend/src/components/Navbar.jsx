@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-
 export default function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -12,7 +11,7 @@ export default function Navbar() {
       const decoded = jwtDecode(token);
       role = decoded.role;
     } catch (error) {
-      console.error("Invalid token",error);
+      console.error("Invalid token", error);
     }
   }
 
@@ -55,6 +54,21 @@ export default function Navbar() {
               Reports
             </Link>
           </>
+        )}
+
+        {/* Links for LECTURERS */}
+        {role === "lecturer" && (
+          <>
+            <Link to="/lecturer-dashboard" className="hover:text-gray-300">
+              Lecturer Dashboard
+            </Link>
+          </>
+        )}
+        {/* Link for Admin to Assign Courses */}
+        {role === "admin" && (
+          <Link to="/assign-courses" className="hover:text-gray-300">
+            Assign Courses
+          </Link>
         )}
 
         <button
