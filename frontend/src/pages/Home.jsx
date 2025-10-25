@@ -1,493 +1,364 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axiosClient from "../api/axiosClient";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
+import Footer from "../components/Footer";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({
-    totalCourses: 0,
-    totalEnrollments: 0,
-    totalPayments: 0,
-    pendingPayments: 0
-  });
-  const [recentEnrollments, setRecentEnrollments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
       try {
-        const token = localStorage.getItem("token");
-        if (token) {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          setUser(payload);
-          
-          // Fetch dashboard data based on user role
-          await fetchDashboardData(payload.role);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+        setUserName(decoded.name);
+      } catch (err) {
+        console.error("Invalid token", err);
       }
-    };
-
-    fetchUserData();
+    }
+    setIsLoading(false);
   }, []);
 
-  // Separate useEffect to handle user changes
-  useEffect(() => {
-    if (user?.role) {
-      fetchDashboardData(user.role);
-    }
-  }, [user]);
-
-  const fetchDashboardData = async (role) => {
-    try {
-      const token = localStorage.getItem("token");
-      
-      if (role === "admin") {
-        // Fetch admin dashboard data
-        const [enrollmentsRes, paymentsRes] = await Promise.all([
-          axiosClient.get("/enrollments", {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axiosClient.get("/payments", {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ]);
-
-        setStats({
-          totalCourses: 4, // Static for now
-          totalEnrollments: enrollmentsRes.data.length,
-          totalPayments: paymentsRes.data.length,
-          pendingPayments: paymentsRes.data.filter(p => p.status === "Pending").length
-        });
-
-        console.log("Admin enrollments data:", enrollmentsRes.data);
-        setRecentEnrollments(enrollmentsRes.data.slice(0, 5));
-      } else if (role === "student") {
-        // Fetch student dashboard data - use the correct endpoint for student enrollments
-        const enrollmentsRes = await axiosClient.get("/enrollments/my-enrollments", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const studentEnrollments = enrollmentsRes.data || [];
-
-        setStats({
-          totalCourses: studentEnrollments.length,
-          totalEnrollments: studentEnrollments.length,
-          totalPayments: 0,
-          pendingPayments: 0
-        });
-
-        console.log("Student enrollments data:", enrollmentsRes.data);
-        setRecentEnrollments(studentEnrollments.slice(0, 3));
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      // Set default values on error
-      setStats({
-        totalCourses: 0,
-        totalEnrollments: 0,
-        totalPayments: 0,
-        pendingPayments: 0
-      });
-      setRecentEnrollments([]);
+  const getRoleBasedContent = () => {
+    switch (userRole) {
+      case "student":
+        return {
+          title: "Welcome Back, Student!",
+          subtitle: "Continue your learning journey",
+          primaryAction: { text: "Browse Courses", link: "/student-home" },
+          secondaryAction: { text: "My Courses", link: "/my-courses" },
+          features: [
+            { icon: "📚", title: "Browse Courses", desc: "Explore available courses" },
+            { icon: "📝", title: "Easy Enrollment", desc: "Simple course enrollment process" },
+            { icon: "💳", title: "Secure Payments", desc: "Safe and secure payment system" },
+            { icon: "📊", title: "Track Progress", desc: "Monitor your learning progress" }
+          ]
+        };
+      case "lecturer":
+        return {
+          title: "Welcome Back, Lecturer!",
+          subtitle: "Manage your courses and students",
+          primaryAction: { text: "Dashboard", link: "/lecturer-dashboard" },
+          secondaryAction: { text: "My Courses", link: "/my-courses" },
+          features: [
+            { icon: "👨‍🏫", title: "Course Management", desc: "Create and manage courses" },
+            { icon: "👥", title: "Student Management", desc: "Track student progress" },
+            { icon: "📋", title: "Content Creation", desc: "Add modules and materials" },
+            { icon: "📈", title: "Analytics", desc: "View course analytics" }
+          ]
+        };
+      case "admin":
+        return {
+          title: "Welcome Back, Admin!",
+          subtitle: "Manage the entire system",
+          primaryAction: { text: "Admin Dashboard", link: "/admin/dashboard" },
+          secondaryAction: { text: "Manage Courses", link: "/courses" },
+          features: [
+            { icon: "⚙️", title: "System Management", desc: "Manage users and courses" },
+            { icon: "📊", title: "Reports & Analytics", desc: "View system-wide reports" },
+            { icon: "👥", title: "User Management", desc: "Manage students and lecturers" },
+            { icon: "💰", title: "Payment Tracking", desc: "Monitor payment status" }
+          ]
+        };
+      default:
+        return {
+          title: "Welcome to Learning Management System",
+          subtitle: "Your gateway to quality education",
+          primaryAction: { text: "Get Started", link: "/login" },
+          secondaryAction: { text: "Learn More", link: "#features" },
+          features: [
+            { icon: "🎓", title: "Quality Education", desc: "Access to top-quality courses" },
+            { icon: "👨‍🏫", title: "Expert Instructors", desc: "Learn from experienced professionals" },
+            { icon: "💻", title: "Online Learning", desc: "Learn from anywhere, anytime" },
+            { icon: "📱", title: "Mobile Friendly", desc: "Access courses on any device" }
+          ]
+        };
     }
   };
 
-  if (loading) {
+  const content = getRoleBasedContent();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-  };
-
-  const getRoleBasedContent = () => {
-    if (user?.role === "admin") {
-      return (
-        <>
-          {/* Admin Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100">Total Courses</p>
-                  <p className="text-3xl font-bold">{stats.totalCourses}</p>
-                </div>
-                <div className="text-blue-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100">Total Enrollments</p>
-                  <p className="text-3xl font-bold">{stats.totalEnrollments}</p>
-                </div>
-                <div className="text-green-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100">Total Payments</p>
-                  <p className="text-3xl font-bold">{stats.totalPayments}</p>
-                </div>
-                <div className="text-purple-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100">Pending Payments</p>
-                  <p className="text-3xl font-bold">{stats.pendingPayments}</p>
-                </div>
-                <div className="text-orange-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link
-                to="/enrolments"
-                className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <div className="text-blue-600 mr-3">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold">View Enrollments</h3>
-                  <p className="text-sm text-gray-600">Manage student enrollments</p>
-                </div>
-              </Link>
-
-              <Link
-                to="/payments"
-                className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <div className="text-green-600 mr-3">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Payment Management</h3>
-                  <p className="text-sm text-gray-600">Track payment status</p>
-                </div>
-              </Link>
-
-              <Link
-                to="/reports"
-                className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-              >
-                <div className="text-purple-600 mr-3">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Generate Reports</h3>
-                  <p className="text-sm text-gray-600">View system analytics</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* Recent Enrollments */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Recent Enrollments</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Student Name</th>
-                    <th className="text-left py-2">Course</th>
-                    <th className="text-left py-2">Batch</th>
-                    <th className="text-left py-2">Payment Status</th>
-                    <th className="text-left py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentEnrollments.map((enrollment, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">
-                        {enrollment.student?.name || enrollment.name || 'N/A'}
-                      </td>
-                      <td className="py-2">
-                        {enrollment.course?.title || enrollment.course || 'N/A'}
-                      </td>
-                      <td className="py-2">{enrollment.batch || 'N/A'}</td>
-                      <td className="py-2">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          enrollment.status === 'completed' || enrollment.paymentStatus === 'Paid'
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {enrollment.status === 'completed' ? 'Completed' : enrollment.paymentStatus || 'Pending'}
-                        </span>
-                      </td>
-                      <td className="py-2">
-                        {enrollment.createdAt ? new Date(enrollment.createdAt).toLocaleDateString() : 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      );
-    } else {
-      // Student Dashboard
-      return (
-        <>
-          {/* Student Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100">My Courses</p>
-                  <p className="text-3xl font-bold">{stats.totalCourses}</p>
-                </div>
-                <div className="text-blue-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100">Enrollments</p>
-                  <p className="text-3xl font-bold">{stats.totalEnrollments}</p>
-                </div>
-                <div className="text-green-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100">Learning Progress</p>
-                  <p className="text-3xl font-bold">85%</p>
-                </div>
-                <div className="text-purple-200">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link
-                to="/enrolment"
-                className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <div className="text-blue-600 mr-3">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Enroll in Course</h3>
-                  <p className="text-sm text-gray-600">Register for new courses</p>
-                </div>
-              </Link>
-
-              <Link
-                to="/payment"
-                className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <div className="text-green-600 mr-3">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Make Payment</h3>
-                  <p className="text-sm text-gray-600">Pay course fees</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* My Courses */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">My Courses</h2>
-            {recentEnrollments.length > 0 ? (
-              <div className="space-y-4">
-                {recentEnrollments.map((enrollment, index) => (
-                  <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          {enrollment.course?.title || enrollment.course || 'Course Name'}
-                        </h3>
-                        <p className="text-gray-600">Batch: {enrollment.batch || 'N/A'}</p>
-                        <p className="text-sm text-gray-500">
-                          Course ID: {enrollment.course?._id || enrollment.courseId || 'N/A'}
-                        </p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm ${
-                        enrollment.status === 'completed' || enrollment.paymentStatus === 'Paid'
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {enrollment.status === 'completed' ? 'Completed' : enrollment.paymentStatus || 'Pending'}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex justify-between items-center">
-                      <span className="text-sm text-gray-500">
-                        Enrolled: {enrollment.createdAt ? new Date(enrollment.createdAt).toLocaleDateString() : 'N/A'}
-                      </span>
-                      <div className="flex space-x-2">
-                        <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200">
-                          View Course
-                        </button>
-                        {(enrollment.status !== 'completed' && enrollment.paymentStatus !== 'Paid') && (
-                          <Link
-                            to="/payment"
-                            className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200"
-                          >
-                            Pay Now
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Courses Yet</h3>
-                <p className="text-gray-500 mb-4">Start your learning journey by enrolling in a course!</p>
-                <Link
-                  to="/enrolment"
-                  className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Enroll Now
-                </Link>
-              </div>
-            )}
-          </div>
-        </>
-      );
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {getGreeting()}, {user?.name || 'User'}! 👋
-          </h1>
-          <p className="text-xl text-gray-600">
-            Welcome to your {user?.role === 'admin' ? 'Admin' : 'Student'} Dashboard
+    <div className="min-h-screen bg-white">
+      {/* Top Navigation */}
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link to="/" className="flex items-center">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-xl">LMS</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
+            </Link>
+            
+            <div className="flex items-center space-x-4">
+              {/* Role-based navigation */}
+              {userRole === "student" && (
+                <>
+                  <Link
+                    to="/student-home"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Browse Courses
+                  </Link>
+                  <Link
+                    to="/my-courses"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    My Courses
+                  </Link>
+                  <Link
+                    to="/enrolment"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Enroll
+                  </Link>
+                  <Link
+                    to="/payment"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Payments
+                  </Link>
+                </>
+              )}
+              
+              {userRole === "lecturer" && (
+                <>
+                  <Link
+                    to="/lecturer-dashboard"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/my-courses"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    My Courses
+                  </Link>
+                </>
+              )}
+              
+              {userRole === "admin" && (
+                <>
+                  <Link
+                    to="/admin/dashboard"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link
+                    to="/courses"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Manage Courses
+                  </Link>
+                  <Link
+                    to="/enrolments"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Enrollments
+                  </Link>
+                  <Link
+                    to="/payments"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Payments
+                  </Link>
+                </>
+              )}
+
+              {/* User info and logout */}
+              {userRole && (
+                <div className="flex items-center space-x-4">
+                  <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Profile
+                  </Link>
+                  <div className="flex items-center text-gray-600 px-4 py-2">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                      {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span>Welcome, {userName || 'User'}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+
+              {!userRole && (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            {/* Welcome Message */}
+            <div className="mb-8">
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                {content.title}
+              </h1>
+              <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+                {content.subtitle}
+              </p>
+              {userName && (
+                <p className="text-lg text-blue-200 mb-8">
+                  Hello, <span className="font-semibold">{userName}</span>!
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link
+                to={content.primaryAction.link}
+                className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                {content.primaryAction.text}
+              </Link>
+              <Link
+                to={content.secondaryAction.link}
+                className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-200"
+              >
+                {content.secondaryAction.text}
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-200">500+</div>
+                <div className="text-blue-100">Active Students</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-200">50+</div>
+                <div className="text-blue-100">Expert Instructors</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-200">100+</div>
+                <div className="text-blue-100">Courses Available</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Wave SVG */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-16 fill-white">
+            <path d="M0,0V46.29c47.79,22.2,103.59,8.19,156.40,25.66C217.19,72.43,272,90,327.67,90C381.4,90,435.22,72.43,489,46.29c53.78-26.14,107.56-8.19,156.40,25.66C698.22,72.43,752,90,806.67,90C860.4,90,914.22,72.43,968,46.29c53.78-26.14,107.56-8.19,156.40,25.66C1180.22,72.43,1234,90,1288.67,90c44.44,0,88.89-17.57,133.33-35.33V0Z"></path>
+          </svg>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose Our Platform?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Experience the future of online learning with our comprehensive features
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {content.features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+              >
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to Start Learning?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Join thousands of students who are already advancing their careers with our courses
           </p>
-          <div className="mt-2">
-            <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-            </span>
-          </div>
+          {!userRole && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/register"
+                className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                Get Started Today
+              </Link>
+              <Link
+                to="/login"
+                className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-200"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
         </div>
+      </section>
 
-        {/* Role-based Content */}
-        {getRoleBasedContent()}
-
-        {/* System Features Overview */}
-        <div className="mt-12 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-6">Learning Management System Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-2">Course Management</h3>
-              <p className="text-sm text-gray-600">Comprehensive course catalog with modules and content</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-2">Student Enrollment</h3>
-              <p className="text-sm text-gray-600">Easy enrollment process with batch management</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-2">Payment Processing</h3>
-              <p className="text-sm text-gray-600">Secure payment handling with status tracking</p>
-            </div>
-
-            <div className="text-center">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-2">Analytics & Reports</h3>
-              <p className="text-sm text-gray-600">Detailed reports and system analytics</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

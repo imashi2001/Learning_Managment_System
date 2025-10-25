@@ -1,102 +1,121 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
+  const [userRole, setUserRole] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  let role = null;
+  const location = useLocation();
 
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      role = decoded.role;
-    } catch (error) {
-      console.error("Invalid token", error);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
     }
-  }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  // 🎯 Role-based links
+  const navLinks = {
+    admin: [
+      { name: "Dashboard", path: "/admin/dashboard" },
+      { name: "Assign Courses", path: "/assign-courses" },
+      { name: "Enrolments", path: "/enrolments" },
+      { name: "Payments", path: "/payments" },
+      { name: "Reports", path: "/reports" },
+      { name: "Manage Users", path: "/users" },
+    ],
+    lecturer: [
+      { name: "Dashboard", path: "/lecturer-dashboard" },
+      { name: "My Courses", path: "/my-courses" },
+    ],
+    student: [
+      { name: "Dashboard", path: "/student/dashboard" },
+      { name: "Enrolment", path: "/enrolment" },
+      { name: "My Courses", path: "/my-courses" },
+      { name: "Payment", path: "/payment" },
+    ],
+  };
+
+  const currentLinks = navLinks[userRole] || [];
+
   return (
-    <nav className="bg-gray-900 text-white p-4 flex flex-wrap justify-between items-center shadow-md">
-      <h1
-        className="text-xl font-bold cursor-pointer"
-        onClick={() => {
-          if (role === "admin") navigate("/admin/dashboard");
-          else if (role === "lecturer") navigate("/lecturer-dashboard");
-          else if (role === "student") navigate("/my-courses");
-          else navigate("/login");
-        }}
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside
+        className={`bg-gray-900 text-white w-64 flex flex-col transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}
       >
-        Learning Management System
-      </h1>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <h1
+            className={`font-bold text-lg tracking-wide ${
+              isCollapsed ? "hidden" : "block"
+            }`}
+          >
+            Learning Management System
+          </h1>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="text-gray-400 hover:text-white text-xl focus:outline-none"
+          >
+            {isCollapsed ? "»" : "«"}
+          </button>
+        </div>
 
-      <div className="flex flex-wrap gap-4 items-center">
-        {/* ✅ Student Navigation */}
-        {role === "student" && (
-          <>
-            <Link to="/enrolment" className="hover:text-gray-300">
-              Enrolment
+        {/* Navigation Links */}
+        <nav className="flex-1 mt-4 space-y-2">
+          {currentLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`flex items-center px-6 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-700 ${
+                location.pathname === link.path
+                  ? "bg-blue-700 border-l-4 border-blue-400"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              {!isCollapsed && <span>{link.name}</span>}
+              {isCollapsed && (
+                <div className="mx-auto text-center">{link.name[0]}</div>
+              )}
             </Link>
-            <Link to="/payment" className="hover:text-gray-300">
-              Payment
-            </Link>
-            <Link to="/my-courses" className="hover:text-gray-300">
-              My Courses
-            </Link>
-          </>
-        )}
-
-        {/* ✅ Lecturer Navigation */}
-        {role === "lecturer" && (
-          <>
-            <Link to="/lecturer-dashboard" className="hover:text-gray-300">
-              Dashboard
-            </Link>
-            <Link to="/lecturer-dashboard" className="hover:text-gray-300">
-              My Students
-            </Link>
-          </>
-        )}
-
-        {/* ✅ Admin Navigation */}
-        {role === "admin" && (
-          <>
-            <Link to="/admin/dashboard" className="hover:text-gray-300">
-              Dashboard
-            </Link>
-            <Link to="/enrolments" className="hover:text-gray-300">
-              Enrolment List
-            </Link>
-            <Link to="/payments" className="hover:text-gray-300">
-              Payments
-            </Link>
-            <Link to="/reports" className="hover:text-gray-300">
-              Reports
-            </Link>
-          </>
-        )}
+          ))}
+        </nav>
 
         {/* Logout Button */}
-        {token ? (
+        <div className="p-4 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
+            className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-sm transition"
           >
             Logout
           </button>
-        ) : (
-          <Link
-            to="/login"
-            className="bg-green-600 px-3 py-1 rounded hover:bg-green-700 transition"
-          >
-            Login
-          </Link>
-        )}
-      </div>
-    </nav>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 bg-gray-100 p-8 overflow-y-auto">
+        {/* Blue highlight line under the heading */}
+        <div className="border-b-4 border-blue-600 mb-6 pb-2">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {document.title || "Learning Management System"}
+          </h2>
+        </div>
+
+        {/* Children (page content will render here) */}
+      </main>
+    </div>
   );
 }

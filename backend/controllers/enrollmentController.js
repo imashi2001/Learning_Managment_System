@@ -23,7 +23,7 @@ export const enrollInCourse = async (req, res) => {
     const enrollment = await Enrollment.create({
       student: req.user.id,
       course: courseId,
-      batch,
+      batch: batch || "General", // default to "General" if not provided
       phone,
       paymentStatus: paymentStatus || "Pending", // default to Pending
       status: "enrolled",

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
+import Footer from "../components/Footer";
 
 export default function LecturerDashboard() {
   const [courses, setCourses] = useState([]);
@@ -8,8 +11,22 @@ export default function LecturerDashboard() {
   const [expandedCourse, setExpandedCourse] = useState(null);
   const [error, setError] = useState("");
   const [moduleForm, setModuleForm] = useState({ title: "", contentType: "text", contentUrl: "" });
+  const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+        setUserName(decoded.name);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    }
+
     const fetchLecturerData = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -40,6 +57,11 @@ export default function LecturerDashboard() {
 
     fetchLecturerData();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   const toggleCourse = (courseId) => {
     setExpandedCourse(expandedCourse === courseId ? null : courseId);
@@ -99,8 +121,55 @@ export default function LecturerDashboard() {
   if (error) return <p className="text-center text-red-600 mt-10">{error}</p>;
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">🎓 Lecturer Dashboard</h1>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link to="/" className="flex items-center">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-xl">LMS</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
+            </Link>
+            <nav className="flex space-x-4">
+              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Home
+              </Link>
+              <Link to="/lecturer-dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Dashboard
+              </Link>
+              <Link to="/my-courses" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                My Courses
+              </Link>
+              <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profile
+              </Link>
+              {userName && (
+                <div className="flex items-center text-gray-600 px-4 py-2">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <span>Welcome, {userName}</span>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 max-w-5xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">🎓 Lecturer Dashboard</h1>
 
       {courses.length === 0 ? (
         <p className="text-center text-gray-600">No courses assigned yet.</p>
@@ -220,6 +289,10 @@ export default function LecturerDashboard() {
           </div>
         ))
       )}
+      </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

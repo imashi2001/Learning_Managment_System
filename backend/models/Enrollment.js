@@ -14,7 +14,8 @@ const enrollmentSchema = new mongoose.Schema(
     },
     batch: {
       type: String,
-      required: true,
+      required: false,
+      default: "General",
     },
     phone: {
       type: String,

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
+import Footer from "../components/Footer";
 
 export default function PaymentList() {
   const [enrollments, setEnrollments] = useState([]);
@@ -8,6 +11,9 @@ export default function PaymentList() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [animate, setAnimate] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState("");
+  const navigate = useNavigate();
 
   const [stats, setStats] = useState({
     totalPaid: 0,
@@ -16,6 +22,17 @@ export default function PaymentList() {
   });
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+        setUserName(decoded.name);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    }
+
     const fetchPayments = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -36,6 +53,11 @@ export default function PaymentList() {
 
     fetchPayments();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   const calculateStats = (data) => {
     const totalPaid = data
@@ -99,8 +121,55 @@ export default function PaymentList() {
   if (loading) return <p className="text-center mt-10">Loading payments...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">💰 Student Payments</h1>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link to="/" className="flex items-center">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-xl">LMS</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
+            </Link>
+            <nav className="flex space-x-4">
+              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Home
+              </Link>
+              <Link to="/admin/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Dashboard
+              </Link>
+              <Link to="/admin/courses" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Manage Courses
+              </Link>
+              <Link to="/admin/enrollments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Enrollments
+              </Link>
+              <Link to="/admin/payments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Payments
+              </Link>
+              <Link to="/admin/reports" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
+                Reports
+              </Link>
+              {userName && (
+                <span className="text-gray-600 px-4 py-2">
+                  Welcome, {userName}
+                </span>
+              )}
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 max-w-6xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">💰 Student Payments</h1>
 
       {/* Summary Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 transition-all duration-500">
@@ -203,6 +272,10 @@ export default function PaymentList() {
           </tbody>
         </table>
       </div>
+      </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

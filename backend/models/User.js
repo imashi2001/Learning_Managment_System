@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "lecturer", "student"], 
       default: "student" 
     },
+    phone: { type: String, default: "" },
+    address: { type: String, default: "" },
+    bio: { type: String, default: "" },
+    profileImage: { type: String, default: "" },
     assignedCourses: [
       {
         type: mongoose.Schema.Types.ObjectId,
