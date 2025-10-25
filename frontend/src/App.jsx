@@ -20,6 +20,8 @@ import StudentDashboard from "./pages/StudentDashboard";
 import CourseManager from "./pages/CourseManager"; // 🆕 new page for admin (add/edit courses)
 import StudentHome from "./pages/StudentHome";
 import UserProfile from "./pages/UserProfile"; // 🆕 User Profile page
+import OTPPayment from "./pages/OTPPayment"; // 🆕 OTP Payment page
+import TestOTPPayment from "./pages/TestOTPPayment"; // 🆕 Test OTP Payment page
 function App() {
   return (
     <Routes>
@@ -49,6 +51,8 @@ function App() {
       <Route path="/admin/payments" element={<ProtectedRoute><PaymentList /></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+      <Route path="/otp-payment" element={<ProtectedRoute><OTPPayment /></ProtectedRoute>} />
+      <Route path="/test-otp-payment" element={<ProtectedRoute><TestOTPPayment /></ProtectedRoute>} />
     </Routes>
   );
 }

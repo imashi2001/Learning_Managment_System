@@ -73,7 +73,7 @@ export default function StudentHome() {
     
     // Store the selected course ID for the enrollment form
     localStorage.setItem("selectedCourseId", courseId);
-    navigate("/enrollment");
+    navigate("/enrolment");
   };
 
   // ✅ Filter courses

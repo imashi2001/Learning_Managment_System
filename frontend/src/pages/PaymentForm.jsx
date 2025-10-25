@@ -54,27 +54,26 @@ export default function PaymentForm() {
     navigate("/login");
   };
 
-  // 💳 Simulate payment process
-  const handlePayment = async () => {
+  // 💳 Navigate to OTP payment
+  const handlePayment = () => {
     if (!selected) {
       toast.warn("Please select a course to pay for.");
       return;
     }
 
-    try {
-      const token = localStorage.getItem("token");
-      await axiosClient.put(
-        `/enrollments/${selected}/pay`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      toast.success("Payment successful!");
-      setEnrollments((prev) => prev.filter((e) => e._id !== selected));
-      setSelected("");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Payment failed");
+    // Find the selected enrollment
+    const selectedEnrollment = enrollments.find(e => e._id === selected);
+    if (!selectedEnrollment) {
+      toast.error("Selected enrollment not found");
+      return;
     }
+
+    // Navigate to OTP payment page with enrollment data
+    navigate("/otp-payment", { 
+      state: { 
+        enrollment: selectedEnrollment 
+      } 
+    });
   };
 
   if (loading) return <p className="text-center mt-10">Loading payments...</p>;
@@ -151,7 +150,7 @@ export default function PaymentForm() {
               onClick={handlePayment}
               className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
             >
-              Pay Now
+              Pay with OTP Verification
             </button>
           </>
         )}

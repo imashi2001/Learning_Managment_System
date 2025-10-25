@@ -131,6 +131,33 @@ export default function MyCourses() {
                 <p><strong>Description:</strong> {course.description}</p>
                 <p><strong>Instructor:</strong> {course.instructor?.name || "TBA"}</p>
                 <p><strong>Course Fee:</strong> Rs.{course.price}</p>
+                
+                {/* Payment Status */}
+                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                  <div>
+                    <p><strong>Payment Status:</strong></p>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      course.paymentStatus === "Paid" 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {course.paymentStatus === "Paid" ? "✅ Paid" : "⏳ Pending"}
+                    </span>
+                  </div>
+                  
+                  {course.paymentStatus !== "Paid" && (
+                    <button
+                      onClick={() => navigate("/otp-payment", { 
+                        state: { 
+                          enrollment: course 
+                        } 
+                      })}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      💳 Pay Now
+                    </button>
+                  )}
+                </div>
 
                 {/* Modules Section */}
                 <div className="mt-3">
