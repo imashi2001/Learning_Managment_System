@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../api/axiosClient";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function EnrolmentList() {
   const [enrolments, setEnrolments] = useState([]);
@@ -78,13 +80,33 @@ export default function EnrolmentList() {
   }, [search, courseFilter, paymentFilter, enrolments]);
 
   if (loading)
-    return <p className="text-center mt-10 text-gray-600">Loading...</p>;
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  
   if (error)
-    return <p className="text-center mt-10 text-red-600 font-medium">{error}</p>;
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-red-600 font-medium">{error}</p>
+        </div>
+        <Footer />
+      </div>
+    );
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 bg-white shadow-md p-6 rounded-lg">
-      <h1 className="text-2xl font-bold mb-4 text-center">Enrolments</h1>
+    <div className="min-h-screen bg-white flex flex-col">
+      <Navbar />
+      
+      <div className="flex-1 max-w-6xl mx-auto mt-10 bg-white shadow-md p-6 rounded-lg mb-10">
+        <h1 className="text-2xl font-bold mb-4 text-center">Enrolments</h1>
 
       {/* 🔎 Search and Filters */}
       <div className="flex flex-wrap gap-3 justify-center mb-6">
@@ -156,6 +178,9 @@ export default function EnrolmentList() {
           )}
         </tbody>
       </table>
+      </div>
+      
+      <Footer />
     </div>
   );
 }

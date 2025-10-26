@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 export default function Home() {
   const [userRole, setUserRole] = useState(null);
@@ -81,11 +82,6 @@ export default function Home() {
 
   const content = getRoleBasedContent();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -99,138 +95,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Top Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">LMS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
-            </Link>
-            
-            <div className="flex items-center space-x-4">
-              {/* Role-based navigation */}
-              {userRole === "student" && (
-                <>
-                  <Link
-                    to="/student-home"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Browse Courses
-                  </Link>
-                  <Link
-                    to="/my-courses"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    My Courses
-                  </Link>
-                  <Link
-                    to="/enrolment"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Enroll
-                  </Link>
-                  <Link
-                    to="/payment"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Payments
-                  </Link>
-                </>
-              )}
-              
-              {userRole === "lecturer" && (
-                <>
-                  <Link
-                    to="/lecturer-dashboard"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/my-courses"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    My Courses
-                  </Link>
-                </>
-              )}
-              
-              {userRole === "admin" && (
-                <>
-                  <Link
-                    to="/admin/dashboard"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Admin Dashboard
-                  </Link>
-                  <Link
-                    to="/courses"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Manage Courses
-                  </Link>
-                  <Link
-                    to="/enrolments"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Enrollments
-                  </Link>
-                  <Link
-                    to="/payments"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Payments
-                  </Link>
-                </>
-              )}
-
-              {/* User info and logout */}
-              {userRole && (
-                <div className="flex items-center space-x-4">
-                  <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Profile
-                  </Link>
-                  <div className="flex items-center text-gray-600 px-4 py-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
-                      {userName ? userName.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <span>Welcome, {userName || 'User'}</span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-
-              {!userRole && (
-                <>
-                  <Link
-                    to="/login"
-                    className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white overflow-hidden">

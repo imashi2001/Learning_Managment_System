@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 export default function CourseManager() {
   const [courses, setCourses] = useState([]);
   const [lecturers, setLecturers] = useState([]);
   const [selectedLecturer, setSelectedLecturer] = useState("");
   const [assigningCourse, setAssigningCourse] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -19,6 +17,7 @@ export default function CourseManager() {
     category: "",
     description: "",
     price: "",
+    duration: "3 months",
   });
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
@@ -48,25 +47,9 @@ export default function CourseManager() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserRole(decoded.role);
-        setUserName(decoded.name);
-      } catch (err) {
-        console.error("Invalid token", err);
-      }
-    }
-    
     fetchCourses();
     fetchLecturers();
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   // ✅ Handle new course form
   const handleChange = (e) => {
@@ -81,7 +64,7 @@ export default function CourseManager() {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Course added successfully");
-      setFormData({ title: "", category: "", description: "", price: "" });
+      setFormData({ title: "", category: "", description: "", price: "", duration: "3 months" });
       fetchCourses();
     } catch (error) {
       toast.error(error.response?.data?.message || "Error adding course");
@@ -161,47 +144,7 @@ export default function CourseManager() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">LMS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
-            </Link>
-            <nav className="flex space-x-4">
-              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Home
-              </Link>
-              <Link to="/admin/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Dashboard
-              </Link>
-              <Link to="/admin/enrollments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Enrollments
-              </Link>
-              <Link to="/admin/payments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Payments
-              </Link>
-              <Link to="/admin/reports" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Reports
-              </Link>
-              {userName && (
-                <span className="text-gray-600 px-4 py-2">
-                  Welcome, {userName}
-                </span>
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex-1 max-w-6xl mx-auto mt-8 bg-white p-6 rounded-xl shadow-md">
@@ -241,6 +184,19 @@ export default function CourseManager() {
           className="p-2 border rounded"
           required
         />
+        <select
+          name="duration"
+          value={formData.duration}
+          onChange={handleChange}
+          className="p-2 border rounded"
+          required
+        >
+          <option value="1 month">1 Month</option>
+          <option value="3 months">3 Months</option>
+          <option value="6 months">6 Months</option>
+          <option value="1 year">1 Year</option>
+          <option value="2 years">2 Years</option>
+        </select>
         <textarea
           name="description"
           value={formData.description}
@@ -265,6 +221,7 @@ export default function CourseManager() {
             <th className="border p-2">Title</th>
             <th className="border p-2">Category</th>
             <th className="border p-2">Price (Rs)</th>
+            <th className="border p-2">Duration</th>
             <th className="border p-2">Description</th>
             <th className="border p-2">Lecturer</th>
             <th className="border p-2 text-center">Actions</th>
@@ -304,6 +261,20 @@ export default function CourseManager() {
                       />
                     </td>
                     <td className="border p-2">
+                      <select
+                        name="duration"
+                        value={editData.duration}
+                        onChange={handleEditChange}
+                        className="p-1 border rounded w-full"
+                      >
+                        <option value="1 month">1 Month</option>
+                        <option value="3 months">3 Months</option>
+                        <option value="6 months">6 Months</option>
+                        <option value="1 year">1 Year</option>
+                        <option value="2 years">2 Years</option>
+                      </select>
+                    </td>
+                    <td className="border p-2">
                       <textarea
                         name="description"
                         value={editData.description}
@@ -331,6 +302,11 @@ export default function CourseManager() {
                     <td className="border p-2">{course.title}</td>
                     <td className="border p-2">{course.category}</td>
                     <td className="border p-2">{course.price}</td>
+                    <td className="border p-2">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                        {course.duration}
+                      </span>
+                    </td>
                     <td className="border p-2 text-sm text-gray-600">
                       {course.description}
                     </td>
@@ -371,7 +347,7 @@ export default function CourseManager() {
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="text-center p-3 text-gray-500 italic">
+              <td colSpan="7" className="text-center p-3 text-gray-500 italic">
                 No courses found.
               </td>
             </tr>

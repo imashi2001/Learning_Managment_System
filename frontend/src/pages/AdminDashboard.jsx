@@ -22,6 +22,7 @@ import "jspdf-autotable";
 import Papa from "papaparse";
 import { Dialog } from "@headlessui/react";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);

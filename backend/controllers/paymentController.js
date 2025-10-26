@@ -4,6 +4,72 @@ import Course from "../models/Course.js";
 import User from "../models/User.js";
 import { sendOTPEmail, sendPaymentConfirmationEmail } from "../utils/emailService.js";
 
+// 🔐 Generate OTP for payment (enrollment flow)
+export const generateEnrollmentPaymentOTP = async (req, res) => {
+  try {
+    const { courseId, paymentMethod, enrollmentData } = req.body;
+
+    // Find course details
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Check if student is authenticated
+    if (!req.user.id) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    // ✅ Fetch user data to get email and name
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+
+    // Create temporary payment record (not linked to enrollment yet)
+    const payment = await Payment.create({
+      student: req.user.id,
+      course: courseId,
+      enrollment: null, // Will be set after enrollment is created
+      amount: course.price,
+      paymentMethod,
+      status: "otp_sent",
+      otp,
+      otpExpiresAt,
+      otpAttempts: 0,
+      enrollmentData: enrollmentData, // Store enrollment form data temporarily
+    });
+
+    // ✅ Send OTP email with user's actual email
+    const emailResult = await sendOTPEmail(
+      user.email,
+      otp,
+      user.name,
+      course.title
+    );
+
+    if (!emailResult.success) {
+      return res.status(500).json({ 
+        message: "Failed to send OTP email", 
+        error: emailResult.error 
+      });
+    }
+
+    res.status(200).json({
+      message: "OTP sent successfully to your email",
+      paymentId: payment._id,
+      expiresIn: 300, // 5 minutes in seconds
+    });
+  } catch (error) {
+    console.error("Error generating enrollment payment OTP:", error);
+    res.status(500).json({ message: "Failed to generate OTP", error: error.message });
+  }
+};
+
 // 🔐 Generate OTP for payment
 export const generatePaymentOTP = async (req, res) => {
   try {
@@ -145,11 +211,32 @@ export const verifyOTPAndCompletePayment = async (req, res) => {
     payment.otpExpiresAt = null;
     await payment.save();
 
-    // Update enrollment status
-    const enrollment = await Enrollment.findById(payment.enrollment._id);
-    enrollment.status = "completed";
-    enrollment.paymentStatus = "Paid";
-    await enrollment.save();
+    // ✅ Handle enrollment update
+    if (payment.enrollment) {
+      // Normal payment flow - update existing enrollment
+      const enrollment = await Enrollment.findById(payment.enrollment._id);
+      enrollment.status = "completed";
+      enrollment.paymentStatus = "Paid";
+      await enrollment.save();
+    } else {
+      // Enrollment flow - create enrollment after payment
+      // enrollmentData is stored in the payment
+      if (payment.enrollmentData) {
+        const enrollment = await Enrollment.create({
+          student: payment.student._id,
+          course: payment.course._id,
+          batch: payment.enrollmentData.batch || "General",
+          phone: payment.enrollmentData.phone,
+          startingDate: new Date(payment.enrollmentData.startingDate),
+          paymentStatus: "Paid",
+          status: "completed",
+        });
+        
+        // Link enrollment to payment
+        payment.enrollment = enrollment._id;
+        await payment.save();
+      }
+    }
 
     // Send payment confirmation email
     await sendPaymentConfirmationEmail(

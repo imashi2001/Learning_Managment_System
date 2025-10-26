@@ -22,6 +22,12 @@ const courseSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    duration: {
+      type: String,
+      required: true,
+      enum: ["1 month", "3 months", "6 months", "1 year", "2 years"],
+      default: "3 months",
+    },
     // ✅ Instructor field – references the lecturer assigned to this course
     instructor: {
       type: mongoose.Schema.Types.ObjectId,

@@ -21,6 +21,10 @@ const enrollmentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    startingDate: {
+      type: Date,
+      required: true,
+    },
     paymentStatus: {
       type: String,
       enum: ["Pending", "Paid"],

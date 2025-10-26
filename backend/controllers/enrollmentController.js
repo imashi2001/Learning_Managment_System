@@ -1,10 +1,11 @@
 import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
+import Payment from "../models/Payment.js";
 
 // 🟢 Enroll in a course
 export const enrollInCourse = async (req, res) => {
   try {
-    const { courseId, batch, phone, paymentStatus } = req.body;
+    const { courseId, batch, phone, paymentStatus, startingDate } = req.body;
 
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
@@ -19,18 +20,50 @@ export const enrollInCourse = async (req, res) => {
         .status(400)
         .json({ message: "Already enrolled in this course" });
 
+    // If paymentStatus is "Paid", check for completed payment
+    if (paymentStatus === "Paid") {
+      const completedPayment = await Payment.findOne({
+        student: req.user.id,
+        course: courseId,
+        status: "completed",
+        enrollment: null // Payment not yet linked to enrollment
+      });
+
+      if (!completedPayment) {
+        return res.status(400).json({ 
+          message: "No completed payment found for this course" 
+        });
+      }
+    }
+
     // ✅ Create enrollment with all fields
     const enrollment = await Enrollment.create({
       student: req.user.id,
       course: courseId,
       batch: batch || "General", // default to "General" if not provided
       phone,
+      startingDate: new Date(startingDate),
       paymentStatus: paymentStatus || "Pending", // default to Pending
       status: "enrolled",
     });
 
+    // If payment was already completed, link it to the enrollment
+    if (paymentStatus === "Paid") {
+      const completedPayment = await Payment.findOne({
+        student: req.user.id,
+        course: courseId,
+        status: "completed",
+        enrollment: null
+      });
+
+      if (completedPayment) {
+        completedPayment.enrollment = enrollment._id;
+        await completedPayment.save();
+      }
+    }
+
     res.status(201).json({
-      message: "Enrolled successfully. Please proceed to payment.",
+      message: paymentStatus === "Paid" ? "Enrolled successfully!" : "Enrolled successfully. Please proceed to payment.",
       enrollment,
     });
   } catch (error) {
@@ -76,8 +109,49 @@ export const getMyCourses = async (req, res) => {
       populate: { path: "instructor", select: "name email" },
     });
 
-    const courses = enrollments.map((en) => en.course);
-    res.json(courses);
+    // Return enrollment data with course details and calculated end date
+    const coursesWithEnrollmentData = enrollments.map((enrollment) => {
+      const course = enrollment.course;
+      
+      // Calculate end date based on course duration and starting date
+      const startDate = new Date(enrollment.startingDate);
+      const duration = course.duration || "3 months";
+      
+      let endDate = new Date(startDate);
+      switch (duration) {
+        case "1 month":
+          endDate.setMonth(endDate.getMonth() + 1);
+          break;
+        case "3 months":
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case "6 months":
+          endDate.setMonth(endDate.getMonth() + 6);
+          break;
+        case "1 year":
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+        case "2 years":
+          endDate.setFullYear(endDate.getFullYear() + 2);
+          break;
+        default:
+          endDate.setMonth(endDate.getMonth() + 3); // default to 3 months
+      }
+
+      return {
+        ...course.toObject(),
+        enrollmentId: enrollment._id,
+        paymentStatus: enrollment.paymentStatus,
+        status: enrollment.status,
+        startingDate: enrollment.startingDate,
+        endDate: endDate,
+        enrolledAt: enrollment.enrolledAt,
+        phone: enrollment.phone,
+        batch: enrollment.batch
+      };
+    });
+
+    res.json(coursesWithEnrollmentData);
   } catch (error) {
     res
       .status(500)

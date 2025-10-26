@@ -4,9 +4,8 @@ import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
   const [userRole, setUserRole] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [userName, setUserName] = useState("");
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -14,6 +13,7 @@ export default function Navbar() {
       try {
         const decoded = jwtDecode(token);
         setUserRole(decoded.role);
+        setUserName(decoded.name);
       } catch (err) {
         console.error("Invalid token", err);
       }
@@ -25,97 +25,74 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // 🎯 Role-based links
-  const navLinks = {
-    admin: [
-      { name: "Dashboard", path: "/admin/dashboard" },
-      { name: "Assign Courses", path: "/assign-courses" },
-      { name: "Enrolments", path: "/enrolments" },
-      { name: "Payments", path: "/payments" },
-      { name: "Reports", path: "/reports" },
-      { name: "Manage Users", path: "/users" },
-    ],
-    lecturer: [
-      { name: "Dashboard", path: "/lecturer-dashboard" },
-      { name: "My Courses", path: "/my-courses" },
-    ],
-    student: [
-      { name: "Dashboard", path: "/student/dashboard" },
-      { name: "Enrolment", path: "/enrolment" },
-      { name: "My Courses", path: "/my-courses" },
-      { name: "Payment", path: "/payment" },
-    ],
+  // 🎯 Role-based navigation links
+  const getNavLinks = () => {
+    if (userRole === "admin") {
+      return [
+        { name: "Dashboard", path: "/admin/dashboard" },
+        { name: "Manage Courses", path: "/course-manager" },
+        { name: "Enrollments", path: "/admin/enrollments" },
+        { name: "Payments", path: "/admin/payments" },
+        { name: "Reports", path: "/admin/reports" },
+      ];
+    } else if (userRole === "lecturer") {
+      return [
+        { name: "Home", path: "/dashboard" },
+        { name: "Dashboard", path: "/lecturer-dashboard" },
+      ];
+    } else if (userRole === "student") {
+      return [
+        { name: "Home", path: "/dashboard" },
+        { name: "Browse Courses", path: "/student-home" },
+        { name: "My Courses", path: "/my-courses" },
+        { name: "Profile", path: "/profile" },
+      ];
+    }
+    return [];
   };
 
-  const currentLinks = navLinks[userRole] || [];
+  const navLinks = getNavLinks();
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside
-        className={`bg-gray-900 text-white w-64 flex flex-col transition-all duration-300 ${
-          isCollapsed ? "w-20" : "w-64"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h1
-            className={`font-bold text-lg tracking-wide ${
-              isCollapsed ? "hidden" : "block"
-            }`}
-          >
-            Learning Management System
-          </h1>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-gray-400 hover:text-white text-xl focus:outline-none"
-          >
-            {isCollapsed ? "»" : "«"}
-          </button>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="flex-1 mt-4 space-y-2">
-          {currentLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`flex items-center px-6 py-2 text-sm font-medium transition-colors duration-200 hover:bg-blue-700 ${
-                location.pathname === link.path
-                  ? "bg-blue-700 border-l-4 border-blue-400"
-                  : "text-gray-300 hover:text-white"
-              }`}
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          <Link to="/dashboard" className="flex items-center">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-xl">LMS</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
+          </Link>
+          
+          <nav className="flex items-center space-x-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
+            
+            {userName && (
+              <div className="flex items-center text-gray-600 px-4 py-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                  {userName ? userName.charAt(0).toUpperCase() : "U"}
+                </div>
+                <span>Welcome, {userName}</span>
+              </div>
+            )}
+            
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
             >
-              {!isCollapsed && <span>{link.name}</span>}
-              {isCollapsed && (
-                <div className="mx-auto text-center">{link.name[0]}</div>
-              )}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Logout Button */}
-        <div className="p-4 border-t border-gray-700">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 py-2 rounded text-sm transition"
-          >
-            Logout
-          </button>
+              Logout
+            </button>
+          </nav>
         </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 bg-gray-100 p-8 overflow-y-auto">
-        {/* Blue highlight line under the heading */}
-        <div className="border-b-4 border-blue-600 mb-6 pb-2">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            {document.title || "Learning Management System"}
-          </h2>
-        </div>
-
-        {/* Children (page content will render here) */}
-      </main>
-    </div>
+      </div>
+    </header>
   );
 }

@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 export default function StudentHome() {
   const [courses, setCourses] = useState([]);
@@ -11,8 +12,6 @@ export default function StudentHome() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [studentId, setStudentId] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
-  const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
   const navigate = useNavigate();
 
 
@@ -36,8 +35,6 @@ export default function StudentHome() {
       try {
         const decoded = jwtDecode(token);
         setStudentId(decoded.id);
-        setUserRole(decoded.role);
-        setUserName(decoded.name);
       } catch (err) {
         console.error("Invalid token", err);
       }
@@ -57,11 +54,6 @@ export default function StudentHome() {
       fetchEnrollments();
     }
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   // ✅ Check enrollment status and navigate accordingly
   const handleEnroll = (courseId) => {
@@ -85,53 +77,7 @@ export default function StudentHome() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">LMS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
-            </Link>
-            <nav className="flex space-x-4">
-              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Home
-              </Link>
-              <Link to="/student-home" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Browse Courses
-              </Link>
-              <Link to="/my-courses" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                My Courses
-              </Link>
-              <Link to="/payment" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Payments
-              </Link>
-              <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profile
-              </Link>
-              {userName && (
-                <div className="flex items-center text-gray-600 px-4 py-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
-                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <span>Welcome, {userName}</span>
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex-1 bg-gray-100 p-6">

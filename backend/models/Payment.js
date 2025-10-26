@@ -4,7 +4,8 @@ const paymentSchema = new mongoose.Schema(
   {
     student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
-    enrollment: { type: mongoose.Schema.Types.ObjectId, ref: "Enrollment", required: true },
+    enrollment: { type: mongoose.Schema.Types.ObjectId, ref: "Enrollment", required: false },
+    enrollmentData: { type: Object, default: null }, // Store enrollment form data temporarily
     amount: { type: Number, required: true },
     paymentMethod: { type: String, enum: ["card", "paypal", "cash"], default: "card" },
     status: { type: String, enum: ["pending", "completed", "failed", "otp_sent", "otp_verified"], default: "pending" },

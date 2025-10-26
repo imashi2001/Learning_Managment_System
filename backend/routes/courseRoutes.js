@@ -15,13 +15,14 @@ const isAdmin = (req, res, next) => {
 // 🆕 Add a new course (Admin only)
 router.post("/", authMiddleware, isAdmin, async (req, res) => {
   try {
-    const { title, category, description, price } = req.body;
+    const { title, category, description, price, duration } = req.body;
 
     const course = await Course.create({
       title,
       category,
       description,
       price: price || 0,
+      duration: duration || "3 months",
     });
 
     res.status(201).json({ message: "Course added successfully", course });
@@ -33,11 +34,11 @@ router.post("/", authMiddleware, isAdmin, async (req, res) => {
 // ✏️ Update a course (Admin only)
 router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
   try {
-    const { title, category, description, price } = req.body;
+    const { title, category, description, price, duration } = req.body;
 
     const updatedCourse = await Course.findByIdAndUpdate(
       req.params.id,
-      { title, category, description, price },
+      { title, category, description, price, duration },
       { new: true }
     );
 

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 export default function OTPPayment() {
   const [step, setStep] = useState(1); // 1: Generate OTP, 2: Verify OTP
@@ -16,6 +17,8 @@ export default function OTPPayment() {
 
   // Get enrollment data from navigation state
   const enrollmentData = location.state?.enrollment;
+  const enrollmentFormData = location.state?.enrollmentData;
+  const isEnrollmentFlow = location.state?.isEnrollmentFlow;
 
   useEffect(() => {
     if (!enrollmentData) {
@@ -43,10 +46,22 @@ export default function OTPPayment() {
     console.log("Generating OTP for enrollment:", enrollmentData._id);
     setIsLoading(true);
     try {
-      const response = await axiosClient.post("/payments/generate-otp", {
-        enrollmentId: enrollmentData._id,
-        paymentMethod: "card"
-      });
+      let response;
+      
+      // Check if this is from enrollment flow
+      if (isEnrollmentFlow && enrollmentFormData) {
+        response = await axiosClient.post("/payments/generate-enrollment-otp", {
+          courseId: enrollmentData.course._id,
+          paymentMethod: "card",
+          enrollmentData: enrollmentFormData
+        });
+      } else {
+        // Normal payment flow
+        response = await axiosClient.post("/payments/generate-otp", {
+          enrollmentId: enrollmentData._id,
+          paymentMethod: "card"
+        });
+      }
 
       console.log("OTP response:", response.data);
       setPaymentData({
@@ -86,14 +101,14 @@ export default function OTPPayment() {
 
       toast.success("Payment completed successfully!");
       
-      // Redirect to success page or back to courses
+      // ✅ Navigate to my-courses for both flows (enrollment is auto-created)
       setTimeout(() => {
         navigate("/my-courses", { 
           state: { 
             message: "Payment completed successfully! You now have access to your course." 
           }
         });
-      }, 2000);
+      }, 1500);
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to verify OTP";
       toast.error(errorMessage);
@@ -151,25 +166,7 @@ export default function OTPPayment() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">LMS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
-            </div>
-            <button
-              onClick={() => navigate("/my-courses")}
-              className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors"
-            >
-              ← Back to Courses
-            </button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">

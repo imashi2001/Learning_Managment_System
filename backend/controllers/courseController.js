@@ -3,7 +3,7 @@ import Course from "../models/Course.js";
 // ➕ Create course
 export const createCourse = async (req, res) => {
   try {
-    const { title, description, category, price, modules } = req.body;
+    const { title, description, category, price, duration, modules } = req.body;
 
     if (req.user.role !== "instructor" && req.user.role !== "admin") {
       return res.status(403).json({
@@ -16,6 +16,7 @@ export const createCourse = async (req, res) => {
       description,
       category,
       price,
+      duration,
       instructor: req.user.id,
       modules,
     });
