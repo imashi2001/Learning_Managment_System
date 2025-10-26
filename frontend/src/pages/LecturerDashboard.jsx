@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
@@ -11,21 +10,8 @@ export default function LecturerDashboard() {
   const [expandedCourse, setExpandedCourse] = useState(null);
   const [error, setError] = useState("");
   const [moduleForm, setModuleForm] = useState({ title: "", contentType: "text", contentUrl: "" });
-  const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserRole(decoded.role);
-        setUserName(decoded.name);
-      } catch (err) {
-        console.error("Invalid token", err);
-      }
-    }
-
     const fetchLecturerData = async () => {
       try {
         const token = localStorage.getItem("token");

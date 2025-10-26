@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
@@ -10,7 +9,6 @@ export default function StudentHome() {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [studentId, setStudentId] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const navigate = useNavigate();
 
@@ -32,13 +30,6 @@ export default function StudentHome() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setStudentId(decoded.id);
-      } catch (err) {
-        console.error("Invalid token", err);
-      }
-      
       // Fetch student's enrollments
       const fetchEnrollments = async () => {
         try {

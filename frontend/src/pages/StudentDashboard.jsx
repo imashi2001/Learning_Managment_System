@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
@@ -9,7 +8,6 @@ import Navbar from "../components/Navbar";
 export default function StudentDashboard() {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEnrollments = async () => {

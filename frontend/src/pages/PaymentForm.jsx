@@ -27,7 +27,7 @@ export default function PaymentForm() {
 
         setEnrollments(pending);
       } catch (error) {
-        toast.error("Failed to load your enrollments");
+        toast.error("Failed to load your enrollments",error);
       } finally {
         setLoading(false);
       }

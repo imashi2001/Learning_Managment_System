@@ -74,26 +74,26 @@ export default function UserProfile() {
     }
   };
 
-  const fetchUserStats = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (userRole === "student") {
-        const res = await axiosClient.get("/enrollments/my-enrollments", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setEnrollments(res.data);
-      } else if (userRole === "lecturer") {
-        const res = await axiosClient.get("/lecturer/courses", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCourses(res.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user stats:", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (userRole === "student") {
+          const res = await axiosClient.get("/enrollments/my-enrollments", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setEnrollments(res.data);
+        } else if (userRole === "lecturer") {
+          const res = await axiosClient.get("/lecturer/courses", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setCourses(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user stats:", error);
+      }
+    };
+
     if (userRole) {
       fetchUserStats();
     }

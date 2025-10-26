@@ -99,7 +99,7 @@ export default function OTPPayment() {
         otp: otp
       });
 
-      toast.success("Payment completed successfully!");
+      toast.success("Payment completed successfully!",response);
       
       // ✅ Navigate to my-courses for both flows (enrollment is auto-created)
       setTimeout(() => {

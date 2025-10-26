@@ -8,11 +8,13 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("student"); // default role
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -41,9 +43,53 @@ export default function Register() {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Name validation
+    if (!name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    }
+    
+    // Email validation
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+      newErrors.password = "Password must contain both letters and numbers";
+    }
+    
+    // Confirm password validation
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setErrors({});
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -148,11 +194,20 @@ export default function Register() {
               <input
                 type="text"
                 placeholder="Enter your full name"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.name 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-green-500 focus:border-transparent'
+                }`}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors({ ...errors, name: '' });
+                }}
               />
+              {errors.name && (
+                <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -162,11 +217,20 @@ export default function Register() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.email 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-green-500 focus:border-transparent'
+                }`}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: '' });
+                }}
               />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -176,14 +240,47 @@ export default function Register() {
               <input
                 type="password"
                 placeholder="Create a strong password"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.password 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-green-500 focus:border-transparent'
+                }`}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors({ ...errors, password: '' });
+                }}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Use at least 8 characters with a mix of letters and numbers
-              </p>
+              {errors.password ? (
+                <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  Use at least 8 characters with a mix of letters and numbers
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                placeholder="Re-enter your password"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.confirmPassword 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-green-500 focus:border-transparent'
+                }`}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                }}
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <div>

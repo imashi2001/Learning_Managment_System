@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
@@ -11,8 +10,6 @@ export default function PaymentList() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [animate, setAnimate] = useState(false);
-  const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
 
   const [stats, setStats] = useState({
     totalPaid: 0,
@@ -21,17 +18,6 @@ export default function PaymentList() {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserRole(decoded.role);
-        setUserName(decoded.name);
-      } catch (err) {
-        console.error("Invalid token", err);
-      }
-    }
-
     const fetchPayments = async () => {
       try {
         const token = localStorage.getItem("token");

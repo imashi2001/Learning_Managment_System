@@ -8,11 +8,40 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Email validation
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setErrors({});
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -98,11 +127,20 @@ export default function Login() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.email 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-blue-500 focus:border-transparent'
+                }`}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: '' });
+                }}
               />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -112,11 +150,20 @@ export default function Login() {
               <input
                 type="password"
                 placeholder="Enter your password"
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className={`w-full p-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  errors.password 
+                    ? 'border-red-300 focus:ring-red-500 focus:border-transparent' 
+                    : 'border-gray-200 focus:ring-blue-500 focus:border-transparent'
+                }`}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors({ ...errors, password: '' });
+                }}
               />
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+              )}
             </div>
 
             <button

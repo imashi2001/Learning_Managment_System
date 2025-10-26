@@ -15,8 +15,6 @@ export default function Enrolment() {
     startingDate: "",
   });
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [paymentData, setPaymentData] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   // 🧠 Auto-fetch student info silently (name/email from token, no input fields)
@@ -55,7 +53,7 @@ export default function Enrolment() {
         navigate("/my-courses");
       }, 1500);
     }
-  }, [courses]); // Add courses as dependency
+  }, [courses, navigate]); // Add courses and navigate as dependencies
 
   // 📚 Fetch available courses
   useEffect(() => {
@@ -86,8 +84,8 @@ export default function Enrolment() {
         return;
       }
       
-      // Basic phone validation
-      const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+      // Basic phone validation (supports + prefix and formatting characters)
+      const phoneRegex = /^\+?[0-9\s\-()]{10,}$/;
       if (!phoneRegex.test(formData.phone)) {
         toast.error("Please enter a valid phone number");
         return;

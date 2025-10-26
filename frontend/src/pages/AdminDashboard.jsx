@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import {
@@ -32,22 +31,9 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const [userRole, setUserRole] = useState(null);
-  const [userName, setUserName] = useState("");
 
-  // ✅ Fetch user info and dashboard data
+  // ✅ Fetch dashboard data
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserRole(decoded.role);
-        setUserName(decoded.name);
-      } catch (err) {
-        console.error("Invalid token", err);
-      }
-    }
-
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
