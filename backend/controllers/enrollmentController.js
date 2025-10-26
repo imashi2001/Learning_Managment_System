@@ -76,7 +76,11 @@ export const getMyEnrollments = async (req, res) => {
   try {
     const enrollments = await Enrollment.find({ student: req.user.id })
       .populate("course", "title category price");
-    res.json(enrollments);
+    
+    // Filter out enrollments with null courses (deleted courses)
+    const validEnrollments = enrollments.filter(enrollment => enrollment.course !== null);
+    
+    res.json(validEnrollments);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -93,7 +97,10 @@ export const getAllEnrollments = async (req, res) => {
       .populate("student", "name email")
       .populate("course", "title category price");
 
-    res.json(allEnrollments);
+    // Filter out enrollments with null courses (deleted courses)
+    const validEnrollments = allEnrollments.filter(enrollment => enrollment.course !== null);
+
+    res.json(validEnrollments);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -109,47 +116,49 @@ export const getMyCourses = async (req, res) => {
       populate: { path: "instructor", select: "name email" },
     });
 
-    // Return enrollment data with course details and calculated end date
-    const coursesWithEnrollmentData = enrollments.map((enrollment) => {
-      const course = enrollment.course;
-      
-      // Calculate end date based on course duration and starting date
-      const startDate = new Date(enrollment.startingDate);
-      const duration = course.duration || "3 months";
-      
-      let endDate = new Date(startDate);
-      switch (duration) {
-        case "1 month":
-          endDate.setMonth(endDate.getMonth() + 1);
-          break;
-        case "3 months":
-          endDate.setMonth(endDate.getMonth() + 3);
-          break;
-        case "6 months":
-          endDate.setMonth(endDate.getMonth() + 6);
-          break;
-        case "1 year":
-          endDate.setFullYear(endDate.getFullYear() + 1);
-          break;
-        case "2 years":
-          endDate.setFullYear(endDate.getFullYear() + 2);
-          break;
-        default:
-          endDate.setMonth(endDate.getMonth() + 3); // default to 3 months
-      }
+    // Filter out enrollments with null courses and return enrollment data with course details
+    const coursesWithEnrollmentData = enrollments
+      .filter((enrollment) => enrollment.course !== null) // Remove enrollments with deleted courses
+      .map((enrollment) => {
+        const course = enrollment.course;
+        
+        // Calculate end date based on course duration and starting date
+        const startDate = new Date(enrollment.startingDate);
+        const duration = course.duration || "3 months";
+        
+        let endDate = new Date(startDate);
+        switch (duration) {
+          case "1 month":
+            endDate.setMonth(endDate.getMonth() + 1);
+            break;
+          case "3 months":
+            endDate.setMonth(endDate.getMonth() + 3);
+            break;
+          case "6 months":
+            endDate.setMonth(endDate.getMonth() + 6);
+            break;
+          case "1 year":
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            break;
+          case "2 years":
+            endDate.setFullYear(endDate.getFullYear() + 2);
+            break;
+          default:
+            endDate.setMonth(endDate.getMonth() + 3); // default to 3 months
+        }
 
-      return {
-        ...course.toObject(),
-        enrollmentId: enrollment._id,
-        paymentStatus: enrollment.paymentStatus,
-        status: enrollment.status,
-        startingDate: enrollment.startingDate,
-        endDate: endDate,
-        enrolledAt: enrollment.enrolledAt,
-        phone: enrollment.phone,
-        batch: enrollment.batch
-      };
-    });
+        return {
+          ...course.toObject(),
+          enrollmentId: enrollment._id,
+          paymentStatus: enrollment.paymentStatus,
+          status: enrollment.status,
+          startingDate: enrollment.startingDate,
+          endDate: endDate,
+          enrolledAt: enrollment.enrolledAt,
+          phone: enrollment.phone,
+          batch: enrollment.batch
+        };
+      });
 
     res.json(coursesWithEnrollmentData);
   } catch (error) {

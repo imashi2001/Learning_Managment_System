@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
@@ -34,7 +34,6 @@ export default function AdminDashboard() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState("");
-  const navigate = useNavigate();
 
   // ✅ Fetch user info and dashboard data
   useEffect(() => {
@@ -70,10 +69,6 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   // 📊 Summary Stats
   const totalStudents = users.filter((u) => u.role === "student").length;
@@ -167,57 +162,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-xl">LMS</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">EduLearn</h1>
-            </Link>
-            <nav className="flex space-x-4">
-              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Home
-              </Link>
-              <Link to="/admin/courses" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Manage Courses
-              </Link>
-              <Link to="/admin/enrollments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Enrollments
-              </Link>
-              <Link to="/admin/payments" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Payments
-              </Link>
-              <Link to="/admin/reports" className="text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                Reports
-              </Link>
-              <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600 px-4 py-2 rounded-lg transition-colors">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profile
-              </Link>
-              {userName && (
-                <div className="flex items-center text-gray-600 px-4 py-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
-                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <span>Welcome, {userName}</span>
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex-1 p-6 bg-gray-100 text-gray-900">

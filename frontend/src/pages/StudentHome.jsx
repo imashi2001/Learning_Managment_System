@@ -45,7 +45,10 @@ export default function StudentHome() {
           const res = await axiosClient.get("/enrollments/my-enrollments", {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setEnrolledCourses(res.data.map(enrollment => enrollment.course._id));
+          // Filter out enrollments with null courses
+          setEnrolledCourses(res.data
+            .filter(enrollment => enrollment.course !== null)
+            .map(enrollment => enrollment.course._id));
         } catch (error) {
           console.error("Failed to fetch enrollments:", error);
         }
