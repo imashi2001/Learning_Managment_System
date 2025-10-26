@@ -6,7 +6,25 @@ import { jwtDecode } from "jwt-decode";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * Enrolment Component
+ * 
+ * This component handles the course enrollment process with payment integration.
+ * Features:
+ * - Multi-step enrollment form (Course Details → Payment)
+ * - Course selection from available courses
+ * - Phone number and starting date collection
+ * - Form validation and error handling
+ * - Automatic course selection from StudentHome
+ * - Integration with OTP payment system
+ * - Payment completion detection and redirect
+ * 
+ * @function handleChange - Updates form data on input change
+ * @function handleSubmit - Validates and submits form, progresses to payment
+ * @function goBack - Returns to previous step in enrollment flow
+ */
 export default function Enrolment() {
+  // State management for courses and enrollment form
   const [courses, setCourses] = useState([]);
   const [step, setStep] = useState(1); // 1: Course Details, 2: Payment, 3: Final Enrollment
   const [formData, setFormData] = useState({

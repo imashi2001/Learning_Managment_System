@@ -5,13 +5,32 @@ import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * OTPPayment Component
+ * 
+ * This component handles secure payment processing using OTP (One-Time Password) verification.
+ * Features:
+ * - Two-step payment flow (Generate OTP → Verify OTP)
+ * - OTP sent to registered email address
+ * - Timer countdown showing OTP expiration
+ * - Limited OTP verification attempts (max 3)
+ * - Support for both enrollment flow and regular payment flow
+ * - Resend OTP functionality after expiration
+ * - Automatic enrollment creation after successful payment
+ * 
+ * @function handleGenerateOTP - Generates and sends OTP to user's email
+ * @function handleVerifyOTP - Verifies OTP and completes payment
+ * @function handleResendOTP - Resends new OTP after expiration
+ * @function formatTime - Formats seconds into MM:SS format
+ */
 export default function OTPPayment() {
+  // State management for payment flow
   const [step, setStep] = useState(1); // 1: Generate OTP, 2: Verify OTP
   const [paymentData, setPaymentData] = useState(null);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [attemptsLeft, setAttemptsLeft] = useState(3);
+  const [timeLeft, setTimeLeft] = useState(0); // Timer countdown in seconds
+  const [attemptsLeft, setAttemptsLeft] = useState(3); // Remaining OTP attempts
   const navigate = useNavigate();
   const location = useLocation();
 

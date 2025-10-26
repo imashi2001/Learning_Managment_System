@@ -4,17 +4,39 @@ import Footer from "../components/Footer";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
+/**
+ * Register Component
+ * 
+ * This component handles new user registration for the Learning Management System.
+ * Features:
+ * - Form validation for all inputs
+ * - Password confirmation verification
+ * - Profile image upload with preview
+ * - Role selection (student, lecturer, admin)
+ * - Real-time error messages for invalid inputs
+ * - Automatic redirect to login after successful registration
+ * 
+ * @function validateForm - Validates all form inputs including password match
+ * @function handleImageChange - Handles profile image selection and preview
+ * @function handleSubmit - Submits registration data and uploads profile image
+ */
 export default function Register() {
+  // State management for form inputs
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("student"); // default role
+  
+  // State management for UI
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  
+  // State management for profile image
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [errors, setErrors] = useState({});
+  
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {

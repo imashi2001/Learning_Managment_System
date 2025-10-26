@@ -3,12 +3,26 @@ import axiosClient from "../api/axiosClient";
 import { useNavigate, Link } from "react-router-dom";
 import Footer from "../components/Footer";
 
+/**
+ * Login Component
+ * 
+ * This component handles user authentication (login) for the Learning Management System.
+ * Features:
+ * - Email and password validation
+ * - Real-time error messages for invalid inputs
+ * - JWT token storage for session management
+ * - Redirects to dashboard after successful login
+ * 
+ * @function validateForm - Validates email format and password requirements
+ * @function handleSubmit - Submits login credentials and handles authentication
+ */
 export default function Login() {
+  // State management for form inputs and UI
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState(""); // Success/error messages
+  const [isLoading, setIsLoading] = useState(false); // Loading state for submit button
+  const [errors, setErrors] = useState({}); // Validation errors
   const navigate = useNavigate();
 
   const validateForm = () => {

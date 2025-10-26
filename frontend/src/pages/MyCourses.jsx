@@ -6,9 +6,25 @@ import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * MyCourses Component
+ * 
+ * This component displays all courses that a student has enrolled in.
+ * Features:
+ * - Display enrollment statistics (Total, Paid, Pending)
+ * - Expandable course cards with detailed information
+ * - Course schedule (enrolled date, start date, end date)
+ * - Payment status and quick payment button for pending courses
+ * - Access to course modules with download/view options
+ * - Instructor information and course details
+ * 
+ * @function fetchMyCourses - Fetches enrolled courses with full details
+ * @function toggleExpand - Toggles course card expansion to show/hide details
+ */
 export default function MyCourses() {
+  // State management for courses and UI
   const [courses, setCourses] = useState([]);
-  const [expanded, setExpanded] = useState(null);
+  const [expanded, setExpanded] = useState(null); // ID of expanded course card
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

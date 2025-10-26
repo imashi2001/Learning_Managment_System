@@ -1,5 +1,21 @@
 import mongoose from "mongoose";
 
+/**
+ * Enrollment Model Schema
+ * 
+ * This schema tracks student enrollments in courses, including payment status
+ * and enrollment details like batch, start date, and contact information.
+ * 
+ * @field student - Reference to the student (User) enrolling in the course (required)
+ * @field course - Reference to the course being enrolled in (required)
+ * @field batch - Batch name for group-based courses (default: "General")
+ * @field phone - Student's contact phone number (required)
+ * @field startingDate - Date when the course starts (required)
+ * @field paymentStatus - Payment status: "Pending" or "Paid" (default: "Pending")
+ * @field status - Enrollment status: "enrolled", "completed", or "cancelled" (default: "enrolled")
+ * @field enrolledAt - Timestamp when enrollment was created (default: current date)
+ * @field timestamps - Automatically adds createdAt and updatedAt fields
+ */
 const enrollmentSchema = new mongoose.Schema(
   {
     student: {

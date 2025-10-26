@@ -4,7 +4,24 @@ import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * PaymentList Component
+ * 
+ * This component displays and manages student payment records for admins.
+ * Features:
+ * - Display all student enrollments with payment status
+ * - Filter enrollments by payment status (All, Paid, Pending)
+ * - Real-time statistics (Total Revenue, Pending Amount, Total Students)
+ * - Mark pending payments as paid with animation
+ * - Responsive table layout with student and course details
+ * 
+ * @function fetchPayments - Fetches all enrollments from backend
+ * @function calculateStats - Calculates revenue and student statistics
+ * @function handleFilterChange - Filters enrollments by payment status
+ * @function markAsPaid - Updates enrollment payment status to "Paid"
+ */
 export default function PaymentList() {
+  // State management for enrollments and filtering
   const [enrollments, setEnrollments] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);

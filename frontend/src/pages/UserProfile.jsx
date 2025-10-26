@@ -5,14 +5,38 @@ import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 
+/**
+ * UserProfile Component
+ * 
+ * This component displays and manages user profile information for all roles.
+ * Features:
+ * - View and edit profile information (name, email, phone, address, bio)
+ * - Profile image upload and removal
+ * - Role-based statistics and activity display
+ * - Different content based on user role (student, lecturer, admin)
+ * - Dynamic dashboard navigation based on role
+ * 
+ * @function fetchUserData - Fetches user profile from backend
+ * @function fetchUserStats - Fetches role-specific statistics (enrollments/courses)
+ * @function updateProfile - Updates user profile information
+ * @function handleImageUpload - Uploads profile image
+ * @function handleRemoveImage - Removes profile image
+ * @function getRoleBasedContent - Returns role-specific content and stats
+ */
 export default function UserProfile() {
+  // State management for user data
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState("");
+  
+  // State management for UI
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // State management for statistics
   const [enrollments, setEnrollments] = useState([]);
   const [courses, setCourses] = useState([]);
+  
   const navigate = useNavigate();
 
   const [editForm, setEditForm] = useState({

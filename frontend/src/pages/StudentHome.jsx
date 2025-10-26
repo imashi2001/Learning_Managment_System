@@ -5,7 +5,25 @@ import { toast } from "react-toastify";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * StudentHome Component
+ * 
+ * This component displays available courses for students to browse and enroll.
+ * Features:
+ * - Display all available courses with details
+ * - Search and filter courses by title or category
+ * - Course details modal with instructor information and modules
+ * - Enrollment status indicator (green badge for enrolled courses)
+ * - Prevents duplicate enrollments
+ * - Stores selected course ID in localStorage for enrollment form
+ * 
+ * @function fetchCourses - Fetches all available courses from backend
+ * @function fetchEnrollments - Fetches student's enrolled courses to check enrollment status
+ * @function handleEnroll - Handles course enrollment and redirects to enrollment form
+ * @function filteredCourses - Filters courses based on search query
+ */
 export default function StudentHome() {
+  // State management for courses and UI
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);

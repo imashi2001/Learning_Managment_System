@@ -5,7 +5,20 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
+/**
+ * StudentDashboard Component
+ * 
+ * This component displays the student's personal dashboard with enrollment statistics.
+ * Features:
+ * - Display enrollment statistics (Total, Paid, Pending)
+ * - Visual pie chart showing payment status distribution
+ * - List of enrolled courses with payment status and dates
+ * - Course duration and enrollment details
+ * 
+ * @function fetchEnrollments - Fetches student's enrolled courses from backend
+ */
 export default function StudentDashboard() {
+  // State management for enrollments and UI
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
 
