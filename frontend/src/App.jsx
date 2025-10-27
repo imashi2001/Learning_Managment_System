@@ -17,11 +17,11 @@ import AssignCourses from "./pages/AssignCourses";
 import MyCourses from "./pages/MyCourses";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
-import CourseManager from "./pages/CourseManager"; // 🆕 new page for admin (add/edit courses)
+import CourseManager from "./pages/CourseManager"; // new page for admin (add/edit courses)
 import StudentHome from "./pages/StudentHome";
-import UserProfile from "./pages/UserProfile"; // 🆕 User Profile page
-import OTPPayment from "./pages/OTPPayment"; // 🆕 OTP Payment page
-import TestOTPPayment from "./pages/TestOTPPayment"; // 🆕 Test OTP Payment page
+import UserProfile from "./pages/UserProfile"; // User Profile page
+import OTPPayment from "./pages/OTPPayment"; // OTP Payment page
+import TestOTPPayment from "./pages/TestOTPPayment"; // Test OTP Payment page
 function App() {
   return (
     <Routes>
